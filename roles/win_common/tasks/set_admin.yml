@@ -1,0 +1,5 @@
+- name: configure builtin administrator 
+  script: set_admin.ps1
+  register: out
+
+- debug: var=out 
