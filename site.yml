@@ -1,4 +1,3 @@
 ---
 
-#- include: win.yml
-- include: linux.yml
+- include: localhost.yml

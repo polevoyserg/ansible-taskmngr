@@ -1,5 +1,0 @@
----
-
-- hosts: win
-  roles: 
-    - win_common
