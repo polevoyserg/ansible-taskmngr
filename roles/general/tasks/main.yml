@@ -1,0 +1,32 @@
+---
+
+- name: give sudo permissions
+  user:
+    name: {{ ansible_ssh_user }}
+    append: yes
+    group: wheel
+
+- name: get public ssh key
+  authorized_key:
+    user: {{ ansible_ssh_user }}
+    key: "{{ lookup('file', '/home/' + ansible_local_user|quote + '/.ssh/id_rsa.pub') }}"
+
+- name: disable password authentication via ssh
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: "^PasswordAuthentication"
+    line: "PasswordAuthentication no"
+    state: present
+  notify: restart ssh
+    
+- name: disable authentication as root
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: "^PermitRootLogin"
+    line: "PermitRootLogin no"
+    state: present
+  notify: restart ssh
+
+- name: remove password
+  shell: passwd -d {{ ansible_ssh_user }}
+  become: true
