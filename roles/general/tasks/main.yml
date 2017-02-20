@@ -1,11 +1,5 @@
 ---
 
-- name: give sudo permissions
-  user:
-    name: {{ ansible_ssh_user }}
-    append: yes
-    group: wheel
-
 - name: get public ssh key
   authorized_key:
     user: {{ ansible_ssh_user }}
@@ -17,14 +11,16 @@
     regexp: "^PasswordAuthentication"
     line: "PasswordAuthentication no"
     state: present
+  become: true
   notify: restart ssh
-    
+
 - name: disable authentication as root
   lineinfile:
     dest: /etc/ssh/sshd_config
     regexp: "^PermitRootLogin"
     line: "PermitRootLogin no"
     state: present
+  become: true
   notify: restart ssh
 
 - name: remove password
