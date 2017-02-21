@@ -5,6 +5,17 @@
     user: "{{ ansible_ssh_user }}"
     key: "{{ lookup('file', '/home/' + ansible_local_user|quote + '/.ssh/id_rsa.pub') }}"
 
+- name: permit sudo without password for deploy user
+  lineinfile:
+    dest: "/etc/sudoers.d/{{ ansible_ssh_user }}"
+    create: yes
+    state: present
+    line: "{{ ansible_ssh_user }} ALL=(ALL) NOPASSWD: ALL"
+    validate: "visudo -cf %s"
+  become: true
+
+- pause:
+
 - name: disable password authentication via ssh
   lineinfile:
     dest: /etc/ssh/sshd_config
@@ -23,6 +34,6 @@
   become: true
   notify: restart ssh
 
-- name: remove password
+- name: remove password for deploy user
   shell: passwd -d "{{ ansible_ssh_user }}"
   become: true
