@@ -3,4 +3,4 @@ taskmngr1
 taskmngr2
 
 [test]
-taskmngr1
+taskmngr1 ansible_sudo_pass=deploy ansible_become_pass=deploy
