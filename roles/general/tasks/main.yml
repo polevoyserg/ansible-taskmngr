@@ -14,6 +14,7 @@
     validate: "visudo -cf %s"
   become: true
 
+- pause:
 
 - name: disable password authentication via ssh
   lineinfile:
