@@ -13,7 +13,6 @@
     line: "{{ ansible_ssh_user }} ALL=(ALL) NOPASSWD: ALL"
     validate: "visudo -cf %s"
   become: true
-  become_method: sudo
 
 - fail:
 
