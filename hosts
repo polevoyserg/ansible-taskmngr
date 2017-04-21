@@ -1,6 +1,16 @@
 [taskmngr]
-taskmngr1
-taskmngr2
+192.168.1.116
+192.168.1.117
 
 [test]
-taskmngr1
+192.168.1.116
+
+[etcd-master]
+192.168.1.116
+
+[kubernetes]
+192.168.1.116
+192.168.1.117
+
+[kubernetes-master]
+192.168.1.116

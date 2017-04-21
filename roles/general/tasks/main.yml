@@ -56,8 +56,13 @@
   become: true
   notify: restart ssh
 
-- name: lock deploy user
-  shell: passwd -S "{{ ansible_ssh_user }}" | cut -d' ' -f2 ; passwd -l "{{ ansible_ssh_user }}" 2>&1 1>/dev/null
-  register: shell_passwd
+- name: is deploy user locked
+  shell: passwd -S "{{ ansible_ssh_user }}" | cut -d' ' -f2
+  register: result
   become: true
-  changed_when: "shell_passwd.stdout != 'LK'"
+  changed_when: false
+
+- name: lock deploy user
+  shell: passwd -l "{{ ansible_ssh_user }}"
+  become: true
+  when: "result.stdout != 'LK'"
