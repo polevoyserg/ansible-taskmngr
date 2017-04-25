@@ -1,0 +1,16 @@
+---
+
+- name: restart flanneld
+  service:
+    name: flanneld
+    state: restarted
+  become: true
+
+- name: restart kubelet
+  service:
+    name: "{{ item }}"
+    state: restarted
+  with_items:
+    "{{ kube_node_binaries }}"
+  become: true
+

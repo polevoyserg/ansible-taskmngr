@@ -1,0 +1,62 @@
+---
+
+- name: install kubernetes-master
+  yum:
+    name: kubernetes-master
+    state: latest
+  become: true
+
+- name: install etcd
+  yum:
+    name: etcd
+    state: latest
+  become: true
+
+- name: deploy etcd.conf template
+  template:
+    src: etcd.conf.j2
+    dest: /etc/etcd/etcd.conf
+    owner: root
+    group: root
+    mode: 0644
+  become: true
+  notify: restart etcd
+
+- name: add etcd directory
+  command: etcdctl mkdir /{{ etcd_directory_name }}/network
+  register: etcd_directory
+  changed_when: etcd_directory.rc == 0
+  failed_when: etcd_directory.rc > 0 and etcd_directory.rc != 4
+  become: true
+  notify: restart etcd
+
+- name: add etcd key if directory added
+  command: etcdctl mk /{{ etcd_directory_name }}/network/config '{"Network":"172.30.0.0/16","SubnetLen":24,"Backend":{"Type":"vxlan"}}'
+  register: result
+  when: etcd_directory.changed
+  changed_when: result.rc == 0
+  failed_when: result.rc > 0 and result.rc != 4
+  become: true
+  notify:
+    - restart etcd
+    - restart flanneld
+
+- name: deploy kubernetes apiserver template
+  template:
+    src: apiserver.j2
+    dest: /etc/kubernetes/apiserver
+    owner: root
+    group: root
+    mode: 0644
+  become: true
+  notify: restart kubernetes apiserver
+
+- name: enable kubernetes master services
+  service:
+    name: "{{ item }}"
+    enabled: yes
+    state: started
+  become: true
+  with_items:
+    - "{{ kube_master_binaries }}"
+

@@ -1,0 +1,2 @@
+kube_master_hostname: "taskmngr1"
+etcd_directory_name: "atomic.io"

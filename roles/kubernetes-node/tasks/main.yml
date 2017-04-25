@@ -1,0 +1,44 @@
+---
+
+- name: install kubernetes-node
+  yum:
+    name: kubernetes-node
+    state: latest
+  become: true
+
+- name: deploy kubelet config template
+  template:
+    src: kubelet.node.j2
+    dest: /etc/kubernetes/kubelet
+    owner: root
+    group: root
+    mode: 0644
+  become: true
+  notify: restart kubelet
+
+- name: deploy flanneld config template
+  template:
+    src: flanneld.node.j2
+    dest: /etc/sysconfig/flanneld
+    owner: root
+    group: root
+    mode: 0644
+  become: true
+  notify: restart flanneld
+
+- name: configure kubectl
+  shell: |
+    kubectl config set-cluster default-cluster --server=http://{{ kube_master_hostname }}:8080
+    kubectl config set-context default-context --cluster=default-cluster --user=default-admin
+    kubectl config use-context default-context
+  changed_when: false
+  notify: restart kubelet
+
+- name: enable kubernetes node services
+  service:
+    name: "{{ item }}"
+    enabled: yes
+    state: started
+  become: true
+  with_items:
+    - "{{ kube_node_binaries }}"

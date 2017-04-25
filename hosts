@@ -1,16 +1,13 @@
 [taskmngr]
-192.168.1.116
-192.168.1.117
+taskmngr1
+taskmngr2
 
 [test]
-192.168.1.116
+taskmngr1
 
-[etcd-master]
-192.168.1.116
-
-[kubernetes]
-192.168.1.116
-192.168.1.117
+[kubernetes-slave]
+taskmngr1
+taskmngr2
 
 [kubernetes-master]
-192.168.1.116
+taskmngr1

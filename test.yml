@@ -3,4 +3,6 @@
 - hosts: test
   roles:
     - general
-    - docker
+    - kubernetes
+    - kubernetes-master
+    - kubernetes-node

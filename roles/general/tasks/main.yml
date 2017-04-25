@@ -10,6 +10,8 @@
 # - debug:
 #     msg: "{{ ansible_ssh_extra_args }}"
 
+# - fail:
+
 - name: use password auth if pubkey doesnt work
   connection: local
   set_fact:
@@ -20,7 +22,6 @@
 # - debug:
 #     msg: "{{ ansible_ssh_extra_args }}"
 
-# - fail:
 
 - name: get public ssh key
   authorized_key:

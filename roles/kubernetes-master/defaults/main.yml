@@ -1,0 +1,6 @@
+kube_master_binaries:
+  - kube-apiserver
+  - kube-controller-manager
+  - kube-scheduler
+  - etcd
+  - flanneld

@@ -1,0 +1,33 @@
+---
+
+- name: install iptables management utils
+  yum:
+    name: iptables-services
+    state: latest
+  become: true
+
+- name: disable iptables to avoid conflicts with Docker iptables rules
+  service:
+    name: iptables
+    state: stopped
+    enabled: no
+  become: true
+
+- name: install ntpd
+  yum:
+    name: ntp
+    state: latest
+  become: true
+
+- name: start and enable ntpd
+  service:
+    name: ntpd
+    state: started
+    enabled: yes
+  become: true
+
+- name: install flannel (overlay network support)
+  yum:
+    name: flannel
+    state: latest
+  become: true
