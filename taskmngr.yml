@@ -1,3 +1,11 @@
-- hosts: kubernetes
+- hosts: kubernetes-master
   roles:
-    - andrewrothstein.kubernetes-cluster
+    - general
+    - kubernetes
+    - kubernetes-master
+
+- hosts: kubernetes-nodes
+  roles:
+    - general
+    - kubernetes
+    - kubernetes-node

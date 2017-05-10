@@ -20,26 +20,7 @@
     group: root
     mode: 0644
   become: true
-  notify: restart etcd
-
-- name: add etcd directory
-  command: etcdctl mkdir /{{ etcd_directory_name }}/network
-  register: etcd_directory
-  changed_when: etcd_directory.rc == 0
-  failed_when: etcd_directory.rc > 0 and etcd_directory.rc != 4
-  become: true
-  notify: restart etcd
-
-- name: add etcd key if directory added
-  command: etcdctl mk /{{ etcd_directory_name }}/network/config '{"Network":"172.30.0.0/16","SubnetLen":24,"Backend":{"Type":"vxlan"}}'
-  register: result
-  when: etcd_directory.changed
-  changed_when: result.rc == 0
-  failed_when: result.rc > 0 and result.rc != 4
-  become: true
-  notify:
-    - restart etcd
-    - restart flanneld
+  notify: restart kube master services
 
 - name: deploy kubernetes apiserver template
   template:
@@ -49,7 +30,30 @@
     group: root
     mode: 0644
   become: true
-  notify: restart kubernetes apiserver
+  notify: restart kube master services
+
+- name: make sure etcd started before using etcdctl
+  service:
+    name: etcd
+    state: started
+  become: true
+
+- name: add etcd directory
+  command: etcdctl mkdir /{{ etcd_directory_name }}/network
+  register: etcd_directory
+  changed_when: etcd_directory.rc == 0
+  failed_when: etcd_directory.rc > 0 and etcd_directory.rc != 4
+  become: true
+  notify: restart kube master services
+
+- name: add etcd key if directory added
+  command: etcdctl mk /{{ etcd_directory_name }}/network/config '{"Network":"172.30.0.0/16","SubnetLen":24,"Backend":{"Type":"vxlan"}}'
+  register: result
+  when: etcd_directory.changed
+  changed_when: result.rc == 0
+  failed_when: result.rc > 0 and result.rc != 4
+  become: true
+  notify: restart kube master services
 
 - name: enable kubernetes master services
   service:

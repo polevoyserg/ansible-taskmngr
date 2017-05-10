@@ -5,7 +5,7 @@ taskmngr2
 [test]
 taskmngr1
 
-[kubernetes-slave]
+[kubernetes-nodes]
 taskmngr1
 taskmngr2
 

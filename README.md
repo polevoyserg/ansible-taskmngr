@@ -6,3 +6,5 @@
 * Sudo should be installed and 'deploy' user must have admin privileges.
 * Selinux should be disabled.
 * Centos 7 only.
+Try this as root on each new node:
+useradd deploy && usermod -p $(openssl passwd deploy) -aG wheel deploy && sed -i 's/SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config && reboot

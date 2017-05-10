@@ -6,6 +6,16 @@
     state: latest
   become: true
 
+# - name: deploy kubernetes config template
+#   template:
+#     src: config.kubernetes.node.j2
+#     dest: /etc/kubernetes/config
+#     owner: root
+#     group: root
+#     mode: 0644
+#   become: true
+#   notify: restart kube node services
+
 - name: deploy kubelet config template
   template:
     src: kubelet.node.j2
@@ -14,7 +24,7 @@
     group: root
     mode: 0644
   become: true
-  notify: restart kubelet
+  notify: restart kube node services
 
 - name: deploy flanneld config template
   template:
@@ -24,15 +34,36 @@
     group: root
     mode: 0644
   become: true
-  notify: restart flanneld
+  notify: restart kube node services
 
-- name: configure kubectl
+- name: make kubelet restart=always to avoid crashing when master unavailable
+  lineinfile:
+    dest: /usr/lib/systemd/system/kubelet.service
+    regexp: '^Restart='
+    line: 'Restart=always'
+  become: true
+  register: kubelet_service_update
+
+- name: apply changes to kubelet service file
   shell: |
-    kubectl config set-cluster default-cluster --server=http://{{ kube_master_hostname }}:8080
-    kubectl config set-context default-context --cluster=default-cluster --user=default-admin
-    kubectl config use-context default-context
-  changed_when: false
-  notify: restart kubelet
+    systemctl daemon-reload
+    systemctl restart kubelet
+  become: true
+  when: kubelet_service_update.changed
+
+# - name: get kubelet status
+#   command:
+#     systemctl status kubelet
+#   register: kubelet_status
+#   become: true
+#   ignore_errors: yes
+#   changed_when: false
+
+# # wait_for and pause to make sure master node gets fully configured before
+# # starting kube-node services
+# - pause:
+#     minutes: 3
+#   when: kubelet_status.rc != 0
 
 - name: enable kubernetes node services
   service:
@@ -42,3 +73,12 @@
   become: true
   with_items:
     - "{{ kube_node_binaries }}"
+
+- name: configure kubectl
+  shell: |
+    kubectl config set-cluster default-cluster --server=http://{{ kube_master_hostname }}:8080
+    kubectl config set-context default-context --cluster=default-cluster --user=default-admin
+    kubectl config use-context default-context
+  changed_when: false
+  become: true
+  notify: restart kube node services
