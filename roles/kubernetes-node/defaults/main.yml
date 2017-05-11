@@ -1,5 +1,5 @@
-kube_node_binaries:
-  - kube-proxy
-  - docker
-  - kubelet
-  - flanneld
+# kube_node_binaries:
+#   - kube-proxy
+#   - docker
+#   - kubelet
+#   - flanneld

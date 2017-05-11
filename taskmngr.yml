@@ -1,3 +1,7 @@
+- hosts:  kubernetes-master
+  tasks:
+    - debug: msg="doesn't matter what you do, just that they were talked to previously."
+
 - hosts: kubernetes-master
   roles:
     - general

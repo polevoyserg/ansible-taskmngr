@@ -1,2 +1,14 @@
 kube_master_hostname: "taskmngr1"
-etcd_directory_name: "atomic.io"
+# etcd_directory_name: "atomic.io"
+kube_base_packages:
+  - docker
+  - kubelet
+  - kubeadm
+  - kubectl
+  - kubernetes-cni
+kube_base_binaries:
+  - docker
+  - kubelet
+kube_users:
+  - { name: "deploy", group: "deploy", home: "/home/deploy" }
+  - { name: "root", group: "root", home: "/root" } 

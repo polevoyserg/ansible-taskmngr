@@ -1,84 +1,106 @@
 ---
 
-- name: install kubernetes-node
-  yum:
-    name: kubernetes-node
-    state: latest
+- debug:
+    var: "{{ hostvars }}"
+- debug:
+    var: "{{ hostvars['taskmngr1'].token }}"
+- debug:
+    var: "{{ hostvars['taskmngr1']['token'] }}"
+- debug:
+    var: "{{ hostvars[groups['kubernetes-master']] }}"
+- debug:
+    var: "{{ hostvars[groups['kubernetes-master'][0]] }}"
+- debug:
+    var: "{{ hostvars[groups['kubernetes-master'][0]].token }}"
+- debug:
+    var: "{{ hostvars[groups['kubernetes-master'][0]]['token'] }}"
+
+- name: join the cluster with kubeadm
+  command: "kubeadm join --token {{ hostvars[groups['kubernetes-master'][0]]['token'] }} --{{ hostvars[groups['kubernetes-master'][0]]['apiserver']['stdout']token }}"
+  register: join
+  changed_when: join.rc == 0
+  failed_when: join.rc > 0 and join.rc != 2
   become: true
 
-# - name: deploy kubernetes config template
+# - name: install kubernetes-node
+#   yum:
+#     name: kubernetes-node
+#     state: latest
+#   become: true
+
+# # - name: deploy kubernetes config template
+# #   template:
+# #     src: config.kubernetes.node.j2
+# #     dest: /etc/kubernetes/config
+# #     owner: root
+# #     group: root
+# #     mode: 0644
+# #   become: true
+# #   notify: restart kube node services
+
+# - name: deploy kubelet config template
 #   template:
-#     src: config.kubernetes.node.j2
-#     dest: /etc/kubernetes/config
+#     src: kubelet.node.j2
+#     dest: /etc/kubernetes/kubelet
 #     owner: root
 #     group: root
 #     mode: 0644
 #   become: true
 #   notify: restart kube node services
 
-- name: deploy kubelet config template
-  template:
-    src: kubelet.node.j2
-    dest: /etc/kubernetes/kubelet
-    owner: root
-    group: root
-    mode: 0644
-  become: true
-  notify: restart kube node services
-
-- name: deploy flanneld config template
-  template:
-    src: flanneld.node.j2
-    dest: /etc/sysconfig/flanneld
-    owner: root
-    group: root
-    mode: 0644
-  become: true
-  notify: restart kube node services
-
-- name: make kubelet restart=always to avoid crashing when master unavailable
-  lineinfile:
-    dest: /usr/lib/systemd/system/kubelet.service
-    regexp: '^Restart='
-    line: 'Restart=always'
-  become: true
-  register: kubelet_service_update
-
-- name: apply changes to kubelet service file
-  shell: |
-    systemctl daemon-reload
-    systemctl restart kubelet
-  become: true
-  when: kubelet_service_update.changed
-
-# - name: get kubelet status
-#   command:
-#     systemctl status kubelet
-#   register: kubelet_status
+# - name: deploy flanneld config template
+#   template:
+#     src: flanneld.node.j2
+#     dest: /etc/sysconfig/flanneld
+#     owner: root
+#     group: root
+#     mode: 0644
 #   become: true
-#   ignore_errors: yes
+#   notify: restart kube node services
+
+# - name: make kubelet restart=always to avoid crashing when master unavailable
+#   lineinfile:
+#     dest: /usr/lib/systemd/system/kubelet.service
+#     regexp: '^Restart='
+#     line: 'Restart=always'
+#   become: true
+#   register: kubelet_service_update
+
+# - name: apply changes to kubelet service file
+#   shell: |
+#     systemctl daemon-reload
+#     systemctl restart kubelet
+#   become: true
+#   when: kubelet_service_update.changed
+
+# # - name: get kubelet status
+# #   command:
+# #     systemctl status kubelet
+# #   register: kubelet_status
+# #   become: true
+# #   ignore_errors: yes
+# #   changed_when: false
+
+# # # wait_for and pause to make sure master node gets fully configured before
+# # # starting kube-node services
+# # - pause:
+# #     minutes: 3
+# #   when: kubelet_status.rc != 0
+
+# - name: enable kubernetes node services
+#   service:
+#     name: "{{ item }}"
+#     enabled: yes
+#     state: started
+#   become: true
+#   with_items:
+#     - "{{ kube_node_binaries }}"
+
+# - name: configure kubectl
+#   shell: |
+#     kubectl config set-cluster default-cluster --server=http://{{ kube_master_hostname }}:8080
+#     kubectl config set-context default-context --cluster=default-cluster --user=default-admin
+#     kubectl config use-context default-context
 #   changed_when: false
-
-# # wait_for and pause to make sure master node gets fully configured before
-# # starting kube-node services
-# - pause:
-#     minutes: 3
-#   when: kubelet_status.rc != 0
-
-- name: enable kubernetes node services
-  service:
-    name: "{{ item }}"
-    enabled: yes
-    state: started
-  become: true
-  with_items:
-    - "{{ kube_node_binaries }}"
-
-- name: configure kubectl
-  shell: |
-    kubectl config set-cluster default-cluster --server=http://{{ kube_master_hostname }}:8080
-    kubectl config set-context default-context --cluster=default-cluster --user=default-admin
-    kubectl config use-context default-context
-  changed_when: false
-  become: true
-  notify: restart kube node services
+#   become: true
+#   notify: restart kube node services

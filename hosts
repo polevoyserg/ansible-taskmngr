@@ -6,7 +6,6 @@ taskmngr2
 taskmngr1
 
 [kubernetes-nodes]
-taskmngr1
 taskmngr2
 
 [kubernetes-master]

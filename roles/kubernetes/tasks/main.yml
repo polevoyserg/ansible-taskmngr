@@ -6,28 +6,52 @@
     state: latest
   become: true
 
-- name: disable iptables to avoid conflicts with Docker iptables rules
-  service:
-    name: iptables
-    state: stopped
-    enabled: no
+- name: deploy kubernetes.repo template to add kube repo
+  template:
+    src: kubernetes.repo.j2
+    dest: /etc/yum.repos.d/kubernetes.repo
+    owner: root
+    group: root
+    mode: 0644
   become: true
 
-- name: install ntpd
+- name: install kube base packages
   yum:
-    name: ntp
+    name: "{{ item }}"
     state: latest
   become: true
+  with_items: "{{ kube_base_packages }}"
 
-- name: start and enable ntpd
+- name: enable kube services
   service:
-    name: ntpd
-    state: started
+    name: "{{ item }}"
     enabled: yes
+    state: started
   become: true
+  with_items: "{{ kube_base_binaries }}"
 
-- name: install flannel (overlay network support)
-  yum:
-    name: flannel
-    state: latest
-  become: true
+# - name: disable iptables to avoid conflicts with Docker iptables rules
+#   service:
+#     name: iptables
+#     state: stopped
+#     enabled: no
+#   become: true
+
+# - name: install ntpd
+#   yum:
+#     name: ntp
+#     state: latest
+#   become: true
+
+# - name: start and enable ntpd
+#   service:
+#     name: ntpd
+#     state: started
+#     enabled: yes
+#   become: true
+
+# - name: install flannel (overlay network support)
+#   yum:
+#     name: flannel
+#     state: latest
+#   become: true

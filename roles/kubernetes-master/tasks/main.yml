@@ -1,66 +1,118 @@
 ---
 
-- name: install kubernetes-master
-  yum:
-    name: kubernetes-master
-    state: latest
+- name: enable bridge-nf-iptables via sysctl (required for kubeadm)
+  shell: "sysctl net.bridge.bridge-nf-call-iptables=1"
   become: true
 
-- name: install etcd
-  yum:
-    name: etcd
-    state: latest
+- name: enable bridge-nf-iptables autostart (req for kubeadm)
+  lineinfile:
+    dest: "/etc/sysctl.conf"
+    regexp: '^net.bridge.bridge-nf-call-iptables'
+    line: "net.bridge.bridge-nf-call-iptables = 1"
   become: true
 
-- name: deploy etcd.conf template
-  template:
-    src: etcd.conf.j2
-    dest: /etc/etcd/etcd.conf
-    owner: root
-    group: root
-    mode: 0644
-  become: true
-  notify: restart kube master services
-
-- name: deploy kubernetes apiserver template
-  template:
-    src: apiserver.j2
-    dest: /etc/kubernetes/apiserver
-    owner: root
-    group: root
-    mode: 0644
-  become: true
-  notify: restart kube master services
-
-- name: make sure etcd started before using etcdctl
-  service:
-    name: etcd
-    state: started
+- name: initialize cluster with kubeadm
+  shell: "kubeadm init --pod-network-cidr=10.244.0.0/16"
+  register: kubeadm_init
+  changed_when: kubeadm_init.rc == 0
+  failed_when: kubeadm_init.rc > 0 and kubeadm_init.rc != 2
   become: true
 
-- name: add etcd directory
-  command: etcdctl mkdir /{{ etcd_directory_name }}/network
-  register: etcd_directory
-  changed_when: etcd_directory.rc == 0
-  failed_when: etcd_directory.rc > 0 and etcd_directory.rc != 4
+- name: copy kubeconfig file to enable kubectl
+  shell: |
+    cp /etc/kubernetes/admin.conf {{ item.home }}/
+    chown {{ item.name }}:{{ item.group }} {{ item.home }}/admin.conf
+  changed_when: false
+  with_items: "{{ kube_users }}"
   become: true
-  notify: restart kube master services
 
-- name: add etcd key if directory added
-  command: etcdctl mk /{{ etcd_directory_name }}/network/config '{"Network":"172.30.0.0/16","SubnetLen":24,"Backend":{"Type":"vxlan"}}'
-  register: result
-  when: etcd_directory.changed
-  changed_when: result.rc == 0
-  failed_when: result.rc > 0 and result.rc != 4
+- name: specify path via variable to kubeconfig file to enable kubectl
+  lineinfile:
+    dest: "{{ item.home }}/.bash_profile"
+    regexp: '^export KUBECONFIG='
+    line: "export KUBECONFIG={{ item.home }}/admin.conf"
+  with_items: "{{ kube_users }}"
   become: true
-  notify: restart kube master services
-
-- name: enable kubernetes master services
-  service:
-    name: "{{ item }}"
-    enabled: yes
-    state: started
+  
+- name: deploy flannel network in pod with kubectl
+  shell: |
+    export KUBECONFIG=/home/{{ ansible_ssh_user }}/admin.conf
+    kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+  changed_when: false
   become: true
-  with_items:
-    - "{{ kube_master_binaries }}"
 
+- name: remember the token to use for kubeadm join on other nodes
+  shell: "kubeadm token list | sed -n 2p | cut -d' ' -f1"
+  register: token
+  changed_when: false
+  become: true
+
+- name: remember the apiserver host-port to use for kubeadm join
+  shell: "kubectl -n kube-system get pods | grep kube-apiserver | cut -d' ' -f1 | xargs -I{} kubectl -n kube-system describe pod {} | grep -E '(--advertise-address|--secure-port)' | sort | cut -d'=' -f2 | tr '\n' ':' | cut -d':' -f1,2"
+  register: apiserver
+  changed_when: false
+  become: true
+
+# - name: install kubernetes-master
+#   yum:
+#     name: kubernetes-master
+#     state: latest
+#   become: true
+
+# - name: install etcd
+#   yum:
+#     name: etcd
+#     state: latest
+#   become: true
+
+# - name: deploy etcd.conf template
+#   template:
+#     src: etcd.conf.j2
+#     dest: /etc/etcd/etcd.conf
+#     owner: root
+#     group: root
+#     mode: 0644
+#   become: true
+#   notify: restart kube master services
+
+# - name: deploy kubernetes apiserver template
+#   template:
+#     src: apiserver.j2
+#     dest: /etc/kubernetes/apiserver
+#     owner: root
+#     group: root
+#     mode: 0644
+#   become: true
+#   notify: restart kube master services
+
+# - name: make sure etcd started before using etcdctl
+#   service:
+#     name: etcd
+#     state: started
+#   become: true
+
+# - name: add etcd directory
+#   command: etcdctl mkdir /{{ etcd_directory_name }}/network
+#   register: etcd_directory
+#   changed_when: etcd_directory.rc == 0
+#   failed_when: etcd_directory.rc > 0 and etcd_directory.rc != 4
+#   become: true
+#   notify: restart kube master services
+
+# - name: add etcd key if directory added
+#   command: etcdctl mk /{{ etcd_directory_name }}/network/config '{"Network":"172.30.0.0/16","SubnetLen":24,"Backend":{"Type":"vxlan"}}'
+#   register: result
+#   when: etcd_directory.changed
+#   changed_when: result.rc == 0
+#   failed_when: result.rc > 0 and result.rc != 4
+#   become: true
+#   notify: restart kube master services
+
+# - name: enable kubernetes master services
+#   service:
+#     name: "{{ item }}"
+#     enabled: yes
+#     state: started
+#   become: true
+#   with_items:
+#     - "{{ kube_master_binaries }}"
