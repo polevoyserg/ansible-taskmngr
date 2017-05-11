@@ -4,7 +4,6 @@
   yum:
     name: iptables-services
     state: latest
-  become: true
 
 - name: deploy kubernetes.repo template to add kube repo
   template:
@@ -13,13 +12,11 @@
     owner: root
     group: root
     mode: 0644
-  become: true
 
 - name: install kube base packages
   yum:
     name: "{{ item }}"
     state: latest
-  become: true
   with_items: "{{ kube_base_packages }}"
 
 - name: enable kube services
@@ -27,31 +24,14 @@
     name: "{{ item }}"
     enabled: yes
     state: started
-  become: true
   with_items: "{{ kube_base_binaries }}"
 
-# - name: disable iptables to avoid conflicts with Docker iptables rules
-#   service:
-#     name: iptables
-#     state: stopped
-#     enabled: no
-#   become: true
+- name: enable bridge-nf-iptables via sysctl (required for kubeadm)
+  shell: "sysctl net.bridge.bridge-nf-call-iptables=1"
+  changed_when: false
 
-# - name: install ntpd
-#   yum:
-#     name: ntp
-#     state: latest
-#   become: true
-
-# - name: start and enable ntpd
-#   service:
-#     name: ntpd
-#     state: started
-#     enabled: yes
-#   become: true
-
-# - name: install flannel (overlay network support)
-#   yum:
-#     name: flannel
-#     state: latest
-#   become: true
+- name: enable bridge-nf-iptables autostart (req for kubeadm)
+  lineinfile:
+    dest: "/etc/sysctl.conf"
+    regexp: '^net.bridge.bridge-nf-call-iptables'
+    line: "net.bridge.bridge-nf-call-iptables = 1"

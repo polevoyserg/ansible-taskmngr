@@ -1,15 +1,15 @@
-- hosts:  kubernetes-master
-  tasks:
-    - debug: msg="doesn't matter what you do, just that they were talked to previously."
-
 - hosts: kubernetes-master
   roles:
     - general
     - kubernetes
     - kubernetes-master
+  environment:
+    KUBECONFIG: /home/deploy/admin.conf
 
 - hosts: kubernetes-nodes
   roles:
     - general
     - kubernetes
     - kubernetes-node
+  environment:
+    KUBECONFIG: /home/deploy/admin.conf
