@@ -34,13 +34,7 @@
 - name: remember the apiserver host-port to use for kubeadm join
   shell: "kubectl -n kube-system get pods | grep kube-apiserver | cut -d' ' -f1 | xargs -I{} kubectl -n kube-system describe pod {} | grep -E '(--advertise-address|--secure-port)' | sort | cut -d'=' -f2 | tr '\n' ':' | cut -d':' -f1,2"
   register: apiserver
+  until: apiserver.stdout != ""
+  retries: 10
+  delay: 5
   changed_when: false
-
-
-
-
-
-
-
-
-
