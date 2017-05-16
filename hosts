@@ -1,12 +1,11 @@
-[taskmngr]
-taskmngr1
-taskmngr2
-
-[test]
+[kubernetes-master]
 taskmngr1
 
 [kubernetes-nodes]
 taskmngr2
 
-[kubernetes-master]
+[jenkins-master]
 taskmngr1
+
+[jenkins-slave]
+taskmngr2
