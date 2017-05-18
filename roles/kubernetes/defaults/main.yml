@@ -1,6 +1,5 @@
 kube_master_hostname: "taskmngr1"
 kube_base_packages:
-  - docker
   - kubelet
   - kubeadm
   - kubectl

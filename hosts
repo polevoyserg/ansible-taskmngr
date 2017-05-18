@@ -1,11 +1,21 @@
 [kubernetes-master]
 taskmngr1
 
-[kubernetes-nodes]
+[kubernetes-node]
 taskmngr2
 
 [jenkins-master]
 taskmngr1
 
 [jenkins-slave]
+taskmngr2
+
+[docker-registry]
+taskmngr1
+
+[tls-server]
+taskmngr1
+
+[tls-client]
+taskmngr1
 taskmngr2

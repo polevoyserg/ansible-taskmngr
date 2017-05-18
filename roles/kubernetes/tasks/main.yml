@@ -19,6 +19,18 @@
     state: latest
   with_items: "{{ kube_base_packages }}"
 
+- name: BUGFIX change cgroup driver for kubelet (or it won't start along with kubeadm)
+  lineinfile:
+    dest: "/etc/systemd/system/kubelet.service.d/10-kubeadm.conf"
+    regexp: '^Environment=\"KUBELET_CGROUP_ARGS='
+    line: 'Environment="KUBELET_CGROUP_ARGS=--cgroup-driver=cgroupfs"'
+
+- name: update cgroup driver configuration for kubelet
+  systemd:
+    name: kubelet
+    state: started
+    daemon_reload: yes
+
 - name: enable kube services
   service:
     name: "{{ item }}"

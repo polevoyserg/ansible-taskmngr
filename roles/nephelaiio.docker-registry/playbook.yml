@@ -1,0 +1,18 @@
+# vim: ts=2 sw=2 et :
+---
+- hosts: all
+  vars:
+    docker_registry_service_restart_policy: unless-stopped
+  pre_tasks:
+    - name: "installing testing packages"
+      action: package
+              name=which,wget
+              state=installed
+      when: ansible_os_family != 'Debian'
+    - name: "installing testing packages"
+      action: package
+              name=wget,net-tools
+              state=installed
+      when: ansible_os_family == 'Debian'
+  roles:
+    - { role: docker-registry }

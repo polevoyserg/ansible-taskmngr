@@ -1,0 +1,28 @@
+# vim: ts=2 sw=2 et :
+---
+driver:
+  name: docker
+
+docker:
+  containers:
+    - name: ansible-docker-registry-jessie
+      image: debian
+      image_version: jessie
+      privileged: True
+      volume_mounts:
+          - '/var/run/docker.sock:/var/run/docker.sock'
+      ansible_groups:
+        - test
+
+dependency:
+  requirements_file: dependencies.yml
+  name: galaxy
+
+molecule:
+  ignore_paths:
+    - .git
+    - .ropeproject
+    - .molecule
+
+verifier:
+  name: testinfra
