@@ -1,6 +1,6 @@
 ---
 dependencies:
-  # - geerlingguy.java
+  - williamyeh.oracle-java
 
 galaxy_info:
   author: geerlingguy

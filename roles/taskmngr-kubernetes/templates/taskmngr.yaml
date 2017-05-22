@@ -1,0 +1,250 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: taskmngr
+  labels:
+    app: taskmngr
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: taskmngr-nginx-ingress
+  namespace: taskmngr
+  labels:
+    app: taskmngr
+	# annotations:
+    # nginx.org/ssl-services: "taskmngr"
+spec:
+  rules:
+      - http:
+            paths:
+                - path: /
+                  backend:
+                      serviceName: taskmngr
+                      servicePort: 8000
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: static-files-pv
+  namespace: taskmngr
+  labels:
+    app: taskmngr
+    type: local
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/pv/static-files"
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres-data-pv
+  namespace: taskmngr
+  labels:
+    app: taskmngr
+    type: local
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/pv/postgres-data"
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: static-files-pvc
+  namespace: taskmngr
+  labels:
+    app: taskmngr
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data-pvc
+  namespace: taskmngr
+  labels:
+    app: taskmngr
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: nginx-conf
+    namespace: taskmngr
+    labels:
+      app: taskmngr
+data:
+    django1.conf: |
+        upstream django {
+            ip_hash;
+            server 127.0.0.1:8001;
+        }
+
+        server {
+            listen 8000;
+            server_name taskmngr1;
+
+            location / {
+                proxy_pass http://django/;
+                include /etc/nginx/proxy_params;
+            }
+
+            location /static {
+                autoindex on;
+                alias /static;
+                include /etc/nginx/proxy_params;
+            }
+        }
+    proxy_params: |
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+    labels:
+        app: taskmngr
+    name: taskmngr
+    namespace: taskmngr
+spec:
+    ports:
+        - name: postfix
+          port: 25
+          nodePort: 30025
+        - name: nginx
+          port: 8000
+          nodePort: 30080
+        - name: django
+          port: 8001
+          nodePort: 30081
+        - name: postgres
+          port: 5432
+          nodePort: 30032
+    selector:
+        app: taskmngr
+    type: NodePort
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+    labels:
+        app: taskmngr
+    name: taskmngr
+    namespace: taskmngr
+spec:
+    replicas: 1
+    template:
+        metadata:
+            labels:
+                app: taskmngr
+        spec:
+            containers:
+                - image: catatnight/postfix
+                  name: postfix
+                  ports:
+                      - containerPort: 25
+                  resources:
+                      limits:
+                          cpu: 100m
+                  env:
+                      - name: maildomain
+                        value: mail.example.com
+                      - name: smtp_user
+                        value: postfix-user:1
+                - image: postgres
+                  name: postgres
+                  ports:
+                      - containerPort: 5432
+                  volumeMounts:
+                      - name: postgres-data
+                        mountPath: /var/lib/postgresql/data
+                  resources:
+                      limits:
+                          cpu: 100m
+                - image: nginx
+                  name: nginx
+                  ports:
+                      - containerPort: 8000
+                  volumeMounts:
+                      - name: nginx-django-conf
+                        mountPath: /etc/nginx/conf.d/django1.conf
+                        subPath: django1.conf
+                      - name: nginx-proxy-conf
+                        mountPath: /etc/nginx/proxy_params
+                        subPath: proxy_params
+                      - name: static-files
+                        mountPath: /static
+                  resources:
+                      limits:
+                          cpu: 100m
+                - image: bititanb/taskmngr
+                  name: django
+                  command: ["/bin/sh"]
+                  args: ["-c", "python manage.py collectstatic --no-input && python manage.py makemigrations && chown -R root:root /static && chmod -R 755 /static && python manage.py migrate && gunicorn taskmngr.wsgi -b 0.0.0.0:8001"]
+                  #args: ["-c", "while true; do sleep 5; done"]
+                  ports:
+                      - containerPort: 8001
+                  volumeMounts:
+                      - name: static-files
+                        mountPath: /static
+                  resources:
+                      limits:
+                          cpu: 150m
+            volumes:
+                - name: nginx-django-conf
+                  configMap:
+                      name: nginx-conf
+                      items:
+                          - key: django1.conf
+                            path: django1.conf
+                - name: nginx-proxy-conf
+                  configMap:
+                      name: nginx-conf
+                      items:
+                          - key: proxy_params
+                            path: proxy_params
+                - name: static-files
+                  persistentVolumeClaim:
+                      claimName: static-files-pvc
+                - name: postgres-data
+                  persistentVolumeClaim:
+                      claimName: postgres-data-pvc
+    selector:
+        matchLabels:
+            app: taskmngr
+

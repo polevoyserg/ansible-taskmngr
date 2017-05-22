@@ -1,3 +1,13 @@
+[tls-server]
+taskmngr1
+
+[tls-client]
+taskmngr1
+taskmngr2
+
+[docker-registry]
+taskmngr1
+
 [kubernetes-master]
 taskmngr1
 
@@ -8,14 +18,4 @@ taskmngr2
 taskmngr1
 
 [jenkins-slave]
-taskmngr2
-
-[docker-registry]
-taskmngr1
-
-[tls-server]
-taskmngr1
-
-[tls-client]
-taskmngr1
 taskmngr2

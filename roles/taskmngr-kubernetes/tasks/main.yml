@@ -1,0 +1,28 @@
+---
+
+- name: copy app config files to remote host
+  template:
+    src: "{{ item[0] }}"
+    dest: "{{ item[1] }}"
+  with_nested: 
+    - "{{ app_kube_configs }}"
+    - "{{ kube_app_configs_dir }}"
+
+- name: delete ingress services from cluster
+  shell: "kubectl delete all --ignore-not-found -n {{ item.namespace_name }} -l {{ item.label_name }}={{ item.label_value }}"
+  when: force_push_ingress_config == true
+  with_items:
+    - "{{ ingress_namespace.backend }}"
+    - "{{ ingress_namespace.controller }}"
+
+- name: delete application services from cluster
+  shell: "kubectl delete all --ignore-not-found -n {{ item.namespace_name }} -l {{ item.label_name }}={{ item.label_value }}"
+  with_items:
+    - "{{ app_namespace }}"
+  when: force_push_app_configs == true
+
+- name: apply application configs in cluster
+  shell: "kubectl apply -f {{ item[0] }}{{ item[1] }}"
+  with_nested:
+    - "{{ kube_app_configs_dir }}"
+    - "{{ app_kube_configs }}"

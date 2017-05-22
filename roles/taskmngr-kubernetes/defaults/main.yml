@@ -1,0 +1,21 @@
+---
+
+app_kube_configs:
+  - nginx-ingress-controller.yaml
+  - taskmngr.yaml
+kube_app_configs_dir: "/etc/kubernetes/manifests/"
+force_push_ingress_config: false
+force_push_app_configs: false
+app_namespace:
+  label_name: "app"
+  label_value: "taskmngr"
+  namespace_name: "taskmngr"
+ingress_namespace:
+  backend:
+    label_name: "k8s-app"
+    label_value: "default-http-backend"
+    namespace_name: "kube-system"
+  controller:
+    label_name: "k8s-app"
+    label_value: "nginx-ingress-controller"
+    namespace_name: "kube-system"

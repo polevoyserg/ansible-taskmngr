@@ -30,15 +30,12 @@
   vars:
     docker_install_compose: false
   roles:
-    - { role: geerlingguy.docker, tags: docker }
     - { role: nephelaiio.docker-registry, tags: docker-registry }
   tags:
     - docker-registry
 
 - hosts: kubernetes-master
   roles:
-    - { role: geerlingguy.docker, tags: docker }
-    - { role: kubernetes, tags: kubernetes }
     - { role: kubernetes-master, tags: kubernetes-master }
   vars:
     docker_install_compose: false
@@ -49,8 +46,6 @@
 
 - hosts: kubernetes-node
   roles:
-    - { role: geerlingguy.docker, tags: docker }
-    - { role: kubernetes, tags: kubernetes }
     - { role: kubernetes-node, tags: kubernetes-node }
   vars:
     docker_install_compose: false
@@ -58,6 +53,17 @@
     KUBECONFIG: /home/deploy/admin.conf
   tags:
     - kubernetes-node
+
+- hosts: kubernetes-master
+  roles:
+    - { role: taskmngr-kubernetes, tags: taskmngr-kubernetes }
+  vars:
+    force_push_ingress_config: true
+    force_push_app_configs: true
+  environment:
+    KUBECONFIG: /home/deploy/admin.conf
+  tags:
+    - taskmngr-kubernetes
 
 - hosts: jenkins-master
   vars:
@@ -72,7 +78,6 @@
     # httpd_server_name: 'taskmngr1'
     # httpd_setup_enable: true
   roles:
-    - { role: williamyeh.oracle-java, tags: java }
     - { role: geerlingguy.jenkins, tags: jenkins-master }
     # - { role: savoirfairelinux.nexus3-oss, tags: nexus }
     # - { role: geerlingguy.apache, tags: apache }
