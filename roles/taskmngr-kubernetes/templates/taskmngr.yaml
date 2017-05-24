@@ -1,29 +1,24 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: taskmngr
-  labels:
-    app: taskmngr
+# apiVersion: v1
+# kind: Namespace
+# metadata:
+#   name: taskmngr
+#   labels:
+#     app: taskmngr
 
----
+# ---
 
-apiVersion: extensions/v1beta1
-kind: Ingress
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
-  name: taskmngr-nginx-ingress
-  namespace: taskmngr
-  labels:
-    app: taskmngr
-	# annotations:
-    # nginx.org/ssl-services: "taskmngr"
-spec:
-  rules:
-      - http:
-            paths:
-                - path: /
-                  backend:
-                      serviceName: taskmngr
-                      servicePort: 8000
+  name: add-on-cluster-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: kube-system
 
 ---
 
@@ -31,7 +26,7 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: static-files-pv
-  namespace: taskmngr
+  namespace: default
   labels:
     app: taskmngr
     type: local
@@ -49,7 +44,7 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: postgres-data-pv
-  namespace: taskmngr
+  namespace: default
   labels:
     app: taskmngr
     type: local
@@ -67,7 +62,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: static-files-pvc
-  namespace: taskmngr
+  namespace: default
   labels:
     app: taskmngr
 spec:
@@ -83,7 +78,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: postgres-data-pvc
-  namespace: taskmngr
+  namespace: default
   labels:
     app: taskmngr
 spec:
@@ -99,29 +94,45 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
     name: nginx-conf
-    namespace: taskmngr
+    namespace: default
     labels:
       app: taskmngr
 data:
     django1.conf: |
+        proxy_redirect off;
+
         upstream django {
-            ip_hash;
+            # ip_hash;
             server 127.0.0.1:8001;
         }
 
         server {
-            listen 8000;
+            # listen 8000;
+            listen 8000 default ssl;
             server_name taskmngr1;
+
+            # ssl on;
+            ssl_certificate /certs/tls.crt;
+            ssl_certificate_key /certs/tls.key;
+            ssl_session_cache    shared:SSL:1m;
+            ssl_session_timeout  10m;
+            ssl_verify_client off;
+            proxy_ssl_session_reuse off;
+            ssl_protocols        TLSv1.2;
+            ssl_ciphers RC4:HIGH:!aNULL:!MD5;
+            proxy_ssl_protocols        TLSv1.2;
+            proxy_ssl_ciphers RC4:HIGH:!aNULL:!MD5;
+            ssl_prefer_server_ciphers on;
+
+            include /etc/nginx/proxy_params;
 
             location / {
                 proxy_pass http://django/;
-                include /etc/nginx/proxy_params;
             }
 
             location /static {
                 autoindex on;
                 alias /static;
-                include /etc/nginx/proxy_params;
             }
         }
     proxy_params: |
@@ -138,24 +149,24 @@ metadata:
     labels:
         app: taskmngr
     name: taskmngr
-    namespace: taskmngr
+    namespace: default
 spec:
     ports:
         - name: postfix
           port: 25
-          nodePort: 30025
+          # nodePort: 30025
         - name: nginx
           port: 8000
-          nodePort: 30080
+          # nodePort: 30080
         - name: django
           port: 8001
-          nodePort: 30081
+          # nodePort: 30081
         - name: postgres
           port: 5432
-          nodePort: 30032
+          # nodePort: 30032
     selector:
         app: taskmngr
-    type: NodePort
+    # type: NodePort
 
 ---
 
@@ -165,7 +176,7 @@ metadata:
     labels:
         app: taskmngr
     name: taskmngr
-    namespace: taskmngr
+    namespace: default
 spec:
     replicas: 1
     template:
@@ -180,14 +191,16 @@ spec:
                       - containerPort: 25
                   resources:
                       limits:
-                          cpu: 100m
+                          cpu: 150m
                   env:
                       - name: maildomain
                         value: mail.example.com
                       - name: smtp_user
                         value: postfix-user:1
-                - image: postgres
+                - image: sameersbn/postgresql
                   name: postgres
+                  # command: ["/bin/sh"]
+                  # args: ["/bin/sh", "-c", "while true; do sleep 5; done"]
                   ports:
                       - containerPort: 5432
                   volumeMounts:
@@ -195,7 +208,7 @@ spec:
                         mountPath: /var/lib/postgresql/data
                   resources:
                       limits:
-                          cpu: 100m
+                          cpu: 150m
                 - image: nginx
                   name: nginx
                   ports:
@@ -209,13 +222,17 @@ spec:
                         subPath: proxy_params
                       - name: static-files
                         mountPath: /static
+                      - name: tls-secret
+                        mountPath: /certs
+                        readOnly: true
                   resources:
                       limits:
-                          cpu: 100m
-                - image: bititanb/taskmngr
+                          cpu: 150m
+                - image: taskmngr1:5000/taskmngr-django
                   name: django
+                  imagePullPolicy: Always
                   command: ["/bin/sh"]
-                  args: ["-c", "python manage.py collectstatic --no-input && python manage.py makemigrations && chown -R root:root /static && chmod -R 755 /static && python manage.py migrate && gunicorn taskmngr.wsgi -b 0.0.0.0:8001"]
+                  args: ["-c", "python manage.py collectstatic --no-input && python manage.py makemigrations && chown -R root:root /static && chmod -R 755 /static && python manage.py migrate && gunicorn taskmngr.wsgi -b 0.0.0.0:8001 --timeout 120"]
                   #args: ["-c", "while true; do sleep 5; done"]
                   ports:
                       - containerPort: 8001
@@ -224,8 +241,11 @@ spec:
                         mountPath: /static
                   resources:
                       limits:
-                          cpu: 150m
+                          cpu: 200m
             volumes:
+                - name: tls-secret
+                  secret:
+                      secretName: tls-secret
                 - name: nginx-django-conf
                   configMap:
                       name: nginx-conf
@@ -248,3 +268,22 @@ spec:
         matchLabels:
             app: taskmngr
 
+# ---
+
+# apiVersion: extensions/v1beta1
+# kind: Ingress
+# metadata:
+#   name: taskmngr-nginx-ingress
+#   annotations:
+#     kubernetes.io/ingress.class: "nginx"
+#     # ingress.kubernetes.io/ssl-passthrough: true
+# spec:
+#   tls:
+#     - secretName: tls-secret
+#   rules:
+#     - http:
+#         paths:
+#           - path: /
+#             backend:
+#               serviceName: taskmngr
+#               servicePort: 8000

@@ -26,4 +26,4 @@ galaxy_info:
     - docker-registry
 
 dependencies:
-  - { role: geerlingguy.docker }
+  - { role: docker }

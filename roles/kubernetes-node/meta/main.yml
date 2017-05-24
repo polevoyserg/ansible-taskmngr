@@ -1,4 +1,5 @@
 ---
 
 dependencies:
+  - { role: cdosborn.tls-cert, TLS_CREATE_SELFSIGNED: false }
   - { role: kubernetes }

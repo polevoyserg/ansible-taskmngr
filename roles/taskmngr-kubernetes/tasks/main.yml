@@ -1,16 +1,29 @@
 ---
 
+- name: delete secret tls
+  shell: "kubectl delete secret tls {{ kube_tls_secret_name }}"
+  failed_when: false
+
+- name: create secret tls
+  shell: "kubectl create secret tls {{ kube_tls_secret_name }} --key {{ kube_tls_key_path }} --cert {{ kube_tls_cert_path }}"
+
+- name: build and push app container
+  docker_image:
+    name: "{{ app_container_name }}"
+    repository: "{{ docker_repo_uri }}/{{ app_container_name }}"
+    push: yes
+
 - name: copy app config files to remote host
   template:
     src: "{{ item[0] }}"
     dest: "{{ item[1] }}"
-  with_nested: 
+  with_nested:
     - "{{ app_kube_configs }}"
     - "{{ kube_app_configs_dir }}"
 
 - name: delete ingress services from cluster
   shell: "kubectl delete all --ignore-not-found -n {{ item.namespace_name }} -l {{ item.label_name }}={{ item.label_value }}"
-  when: force_push_ingress_config == true
+  when: force_ingress
   with_items:
     - "{{ ingress_namespace.backend }}"
     - "{{ ingress_namespace.controller }}"
@@ -19,7 +32,7 @@
   shell: "kubectl delete all --ignore-not-found -n {{ item.namespace_name }} -l {{ item.label_name }}={{ item.label_value }}"
   with_items:
     - "{{ app_namespace }}"
-  when: force_push_app_configs == true
+  when: force_app
 
 - name: apply application configs in cluster
   shell: "kubectl apply -f {{ item[0] }}{{ item[1] }}"

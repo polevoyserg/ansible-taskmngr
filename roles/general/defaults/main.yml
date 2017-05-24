@@ -1,0 +1,2 @@
+centos_base_packages:
+  - epel-release

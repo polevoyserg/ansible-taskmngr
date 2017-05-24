@@ -45,3 +45,8 @@
 - name: lock deploy user
   shell: passwd -l "{{ ansible_ssh_user }}"
   when: "result.stdout != 'LK'"
+
+- name: install base packages
+  yum:
+    name: "{{ item }}"
+  with_items: "{{ centos_base_packages }}"

@@ -4,8 +4,8 @@ app_kube_configs:
   - nginx-ingress-controller.yaml
   - taskmngr.yaml
 kube_app_configs_dir: "/etc/kubernetes/manifests/"
-force_push_ingress_config: false
-force_push_app_configs: false
+force_ingress: false
+force_app: false
 app_namespace:
   label_name: "app"
   label_value: "taskmngr"
@@ -19,3 +19,8 @@ ingress_namespace:
     label_name: "k8s-app"
     label_value: "nginx-ingress-controller"
     namespace_name: "kube-system"
+app_container_name: "taskmngr-django"
+docker_repo_uri: "taskmngr1:5000"
+kube_tls_secret_name: "tls-secret"
+kube_tls_cert_path: "/etc/pki/tls/certs/{{ TLS_DEST_BASENAME }}.crt"
+kube_tls_key_path: "/etc/pki/tls/private/{{ TLS_DEST_BASENAME }}.key"

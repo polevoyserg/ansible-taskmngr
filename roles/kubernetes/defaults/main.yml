@@ -1,12 +1,11 @@
 kube_master_hostname: "taskmngr1"
-kube_base_packages:
-  - kubelet
-  - kubeadm
-  - kubectl
-  - kubernetes-cni
+kubelet_package_name: "kubelet"
+kubeadm_package_name: "kubeadm"
+kubectl_package_name: "kubectl"
+kubecni_package_name: "kubernetes-cni"
 kube_base_binaries:
   - docker
   - kubelet
 kube_users:
-  - { name: "root", group: "root", home: "/root" } 
+  - { name: "root", group: "root", home: "/root" }
   - { name: "{{ ansible_ssh_user }}", group: "{{ ansible_ssh_user }}", home: "/home/{{ ansible_ssh_user }}" }

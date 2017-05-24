@@ -2,7 +2,7 @@
 ---
 #Container image name
 docker_registry_image: registry
-docker_registry_image_pull: false
+docker_registry_image_pull: missing
 docker_registry_storage_path: /var/cache/docker/registry
 docker_registry_storage_volume: /var/lib/registry
 docker_registry_service_name: docker_registry

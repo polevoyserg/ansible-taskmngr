@@ -2,4 +2,4 @@
 
 dependencies:
   - { role: general }
-  - { role: geerlingguy.docker }
+  - { role: docker }

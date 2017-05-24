@@ -19,3 +19,9 @@ taskmngr1
 
 [jenkins-slave]
 taskmngr2
+
+[taskmngr-master]
+taskmngr1
+
+[taskmngr-node]
+taskmngr2

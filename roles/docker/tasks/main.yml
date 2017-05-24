@@ -1,14 +1,16 @@
-- name: install docker
+- name: install docker yum packages
   yum:
-    name: docker
-  become: true
+    name: "{{ item }}"
+    state: latest
+  with_items: "{{ docker_yum_packages }}"
 
-- name: install pip
-  yum:
-    name: python-pip
-  become: true
-
-- name: install docker-compose
+- name: install docker pip packages
   pip:
-    name: docker-compose
-  become: true
+    name: "{{ item }}"
+  with_items: "{{ docker_pip_packages }}"
+
+- name: enable docker service
+  service:
+    name: docker
+    enabled: true
+    state: started

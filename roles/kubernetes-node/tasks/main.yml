@@ -1,5 +1,9 @@
 ---
 
+- name: reset kube node
+  shell: "kubeadm reset"
+  when: force_kubeadm
+
 - name: join the cluster with kubeadm
   command: "kubeadm join --token {{ hostvars[groups['kubernetes-master'][0]]['token']['stdout'] }} {{ hostvars[groups['kubernetes-master'][0]]['apiserver']['stdout'] }}"
   register: join
@@ -19,17 +23,3 @@
     regexp: '^export KUBECONFIG='
     line: "export KUBECONFIG={{ item.home }}/kubelet.conf"
   with_items: "{{ kube_users }}"
-  
-
-
-
-
-
-
-
-
-
-
-
-
-

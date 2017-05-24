@@ -1,72 +1,16 @@
-- hosts: all
+- hosts: taskmngr-master
   roles:
-    - { role: general, tags: general }
-  tags:
-    - general
-
-- hosts: tls-server
+    - { role: nephelaiio.docker-registry, tags: docker-registry }
+    - { role: taskmngr-kubernetes, tags: taskmngr-kubernetes }
+    - { role: geerlingguy.jenkins, tags: jenkins-master }
   vars:
-    TLS_DEST_BASENAME: 'taskmngr1'
-    TLS_CREATE_SELFSIGNED: true
-  roles:
-    - { role: cdosborn.tls-cert, tags: tls-server }
-  tags:
-    - tls-server
-
-- hosts: tls-client
-  vars:
+    ### tls
     TLS_DEST_BASENAME: 'taskmngr1'
     TLS_PRIVKEY_SRC_FILE: "files/{{ TLS_DEST_BASENAME }}.key"
     TLS_CERT_SRC_FILE: "files/{{ TLS_DEST_BASENAME }}.crt"
     TLS_CACHAIN_SRC_FILE: "files/{{ TLS_DEST_BASENAME }}.cachain.crt"
-    # TLS_PRIVKEY_DEST_DIR_2: "/keys"
     TLS_CERT_DEST_DIR_2: "/etc/pki/ca-trust/source/anchors"
-  roles:
-    - { role: cdosborn.tls-cert, tags: tls-client }
-  tags:
-    - tls-client
-
-- hosts: docker-registry
-  vars:
-    docker_install_compose: false
-  roles:
-    - { role: nephelaiio.docker-registry, tags: docker-registry }
-  tags:
-    - docker-registry
-
-- hosts: kubernetes-master
-  roles:
-    - { role: kubernetes-master, tags: kubernetes-master }
-  vars:
-    docker_install_compose: false
-  environment:
-    KUBECONFIG: /home/deploy/admin.conf
-  tags:
-    - kubernetes-master
-
-- hosts: kubernetes-node
-  roles:
-    - { role: kubernetes-node, tags: kubernetes-node }
-  vars:
-    docker_install_compose: false
-  environment:
-    KUBECONFIG: /home/deploy/admin.conf
-  tags:
-    - kubernetes-node
-
-- hosts: kubernetes-master
-  roles:
-    - { role: taskmngr-kubernetes, tags: taskmngr-kubernetes }
-  vars:
-    force_push_ingress_config: true
-    force_push_app_configs: true
-  environment:
-    KUBECONFIG: /home/deploy/admin.conf
-  tags:
-    - taskmngr-kubernetes
-
-- hosts: jenkins-master
-  vars:
+    ### jenkins
     jenkins_hostname: taskmngr1
     jenkins_repo_url: http://pkg.jenkins-ci.org/redhat-stable/jenkins.repo
     jenkins_repo_key_url: http://pkg.jenkins-ci.org/redhat-stable/jenkins-ci.org.key
@@ -77,9 +21,18 @@
     # apache_create_vhosts: no
     # httpd_server_name: 'taskmngr1'
     # httpd_setup_enable: true
+  environment:
+    KUBECONFIG: /home/deploy/admin.conf
+
+- hosts: taskmngr-node
   roles:
-    - { role: geerlingguy.jenkins, tags: jenkins-master }
-    # - { role: savoirfairelinux.nexus3-oss, tags: nexus }
-    # - { role: geerlingguy.apache, tags: apache }
-  tags:
-    - jenkins-master
+    - { role: kubernetes-node, tags: kubernetes-node }
+  vars:
+    ### tls
+    TLS_DEST_BASENAME: 'taskmngr1'
+    TLS_PRIVKEY_SRC_FILE: "files/{{ TLS_DEST_BASENAME }}.key"
+    TLS_CERT_SRC_FILE: "files/{{ TLS_DEST_BASENAME }}.crt"
+    TLS_CACHAIN_SRC_FILE: "files/{{ TLS_DEST_BASENAME }}.cachain.crt"
+    TLS_CERT_DEST_DIR_2: "/etc/pki/ca-trust/source/anchors"
+  environment:
+    KUBECONFIG: /home/deploy/admin.conf

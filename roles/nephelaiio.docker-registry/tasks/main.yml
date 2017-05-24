@@ -14,10 +14,10 @@
 
 # Run docker image
 - name: run docker image
-  docker_container:
+  docker:
     name: "{{ docker_registry_service_name }}"
     image: "{{ docker_registry_image }}"
-    published_ports:
+    ports:
       - "{{ docker_registry_service_port }}:{{ docker_registry_service_port }}"
     state: "{{ docker_registry_service_status }}"
     restart_policy: "{{ docker_registry_service_restart_policy }}"

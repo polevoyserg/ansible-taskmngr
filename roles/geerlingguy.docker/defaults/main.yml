@@ -16,3 +16,5 @@ docker_apt_repository: "deb [arch=amd64] https://download.docker.com/linux/{{ an
 docker_yum_repo_url: https://download.docker.com/linux/centos/docker-{{ docker_edition }}.repo
 docker_yum_repo_enable_edge: 0
 docker_yum_repo_enable_test: 0
+
+docker_pip_helpers: docker-py

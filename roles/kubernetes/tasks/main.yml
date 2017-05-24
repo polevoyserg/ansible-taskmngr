@@ -17,13 +17,17 @@
   yum:
     name: "{{ item }}"
     state: latest
-  with_items: "{{ kube_base_packages }}"
+  with_items:
+    - "{{ kubelet_package_name }}"
+    - "{{ kubeadm_package_name }}"
+    - "{{ kubectl_package_name }}"
+    - "{{ kubecni_package_name }}"
 
-- name: BUGFIX change cgroup driver for kubelet (or it won't start along with kubeadm)
-  lineinfile:
-    dest: "/etc/systemd/system/kubelet.service.d/10-kubeadm.conf"
-    regexp: '^Environment=\"KUBELET_CGROUP_ARGS='
-    line: 'Environment="KUBELET_CGROUP_ARGS=--cgroup-driver=cgroupfs"'
+# - name: BUGFIX change cgroup driver for kubelet (or it won't start along with kubeadm)
+#   lineinfile:
+#     dest: "/etc/systemd/system/kubelet.service.d/10-kubeadm.conf"
+#     regexp: '^Environment=\"KUBELET_CGROUP_ARGS='
+#     line: 'Environment="KUBELET_CGROUP_ARGS=--cgroup-driver=cgroupfs"'
 
 - name: update cgroup driver configuration for kubelet
   systemd:
