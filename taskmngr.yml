@@ -1,6 +1,7 @@
 - hosts: taskmngr-master
   roles:
     - { role: nephelaiio.docker-registry, tags: docker-registry }
+    - { role: kubernetes-master, tags: kubernetes-master }
     - { role: taskmngr-kubernetes, tags: taskmngr-kubernetes }
     - { role: geerlingguy.jenkins, tags: jenkins-master }
   vars:

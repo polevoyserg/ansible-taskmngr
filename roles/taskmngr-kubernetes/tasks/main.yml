@@ -1,14 +1,26 @@
 ---
 
+- name: install required for app yum packages
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items: "{{ app_required_yum_packages }}"
+
 - name: delete secret tls
-  shell: "kubectl delete secret tls {{ kube_tls_secret_name }}"
+  shell: "kubectl delete secret {{ kube_tls_secret_name }}"
   failed_when: false
 
 - name: create secret tls
   shell: "kubectl create secret tls {{ kube_tls_secret_name }} --key {{ kube_tls_key_path }} --cert {{ kube_tls_cert_path }}"
 
+- name: get app from git
+  git:
+    repo: '{{ app_git }}'
+    dest: '{{ app_repo_local_path }}'
+
 - name: build and push app container
   docker_image:
+    path: "{{ app_dockerfile_path }}"
     name: "{{ app_container_name }}"
     repository: "{{ docker_repo_uri }}/{{ app_container_name }}"
     push: yes

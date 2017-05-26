@@ -5,19 +5,29 @@
     TLS_DEST_BASENAME: selfsigned
   when: TLS_DEST_BASENAME is undefined
 
+- name: enable subjectAltName request on cert creating
+  lineinfile:
+    dest: "/etc/pki/tls/openssl.cnf"
+    regexp: "^x509_extensions"
+    line: "x509_extensions = v3_ca"
+    insertafter: '^.* req .*$'
+
+- name: set subjectAltName in openssl config (to get correct certs)
+  lineinfile:
+    dest: "/etc/pki/tls/openssl.cnf"
+    regexp: "^subjectAltName"
+    line: "subjectAltName=DNS:{{ TLS_DEST_BASENAME }}"
+    insertafter: '^.* v3_ca .*$'
+
+- name: check if cert is already exists
+  stat:
+    path: "{{ TLS_CERT_DEST_DIR }}/{{ TLS_DEST_BASENAME }}.crt"
+  register: cert_file
+
 - name: Self-signed certificate and private key created
   tags: [selfsigned-cert-created]
-  command: >
-    openssl req -new
-    -x509
-    -nodes
-    -extensions v3_ca
-    -days 3650
-    -subj "/CN={{ TLS_DEST_BASENAME }}"
-    -keyout {{ TLS_PRIVKEY_DEST_DIR }}/{{ TLS_DEST_BASENAME }}.key
-    -out {{ TLS_CERT_DEST_DIR }}/{{ TLS_DEST_BASENAME }}.crt
-  args:
-    creates: "{{ TLS_CERT_DEST_DIR }}/{{ TLS_DEST_BASENAME }}.crt"
+  command: 'openssl req -newkey rsa:2048 -sha256 -x509 -nodes -new -days 3650 -subj "/CN={{ TLS_DEST_BASENAME }}" -keyout {{ TLS_PRIVKEY_DEST_DIR }}/{{ TLS_DEST_BASENAME }}.key -out {{ TLS_CERT_DEST_DIR }}/{{ TLS_DEST_BASENAME }}.crt'
+  when: (not cert_file.stat.exists) or (force_create_cert)
 
 - name: Restricted file permissions set on private key
   when: ansible_distribution == "CentOS"
