@@ -9,3 +9,4 @@ kube_base_binaries:
 kube_users:
   - { name: "root", group: "root", home: "/root" }
   - { name: "{{ ansible_ssh_user }}", group: "{{ ansible_ssh_user }}", home: "/home/{{ ansible_ssh_user }}" }
+# KUBECONFIG: "/home/deploy/admin.conf"

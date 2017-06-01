@@ -1,0 +1,5 @@
+[postgresql]
+zabbix-server-pgsql-centos
+
+[mysql]
+zabbix-server-mysql-centos

@@ -14,7 +14,6 @@
   shell: |
     cp /etc/kubernetes/admin.conf {{ item.home }}/
     chown {{ item.name }}:{{ item.group }} {{ item.home }}/admin.conf
-  changed_when: false
   with_items: "{{ kube_users }}"
 
 - name: specify path via variable to kubeconfig file to enable kubectl
@@ -28,18 +27,35 @@
   shell: |
     kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel-rbac.yml
     kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
-    echo "DEBUG: KUBECONFIG=$KUBECONFIG"
-  changed_when: false
-
-- name: remember the token to use for kubeadm join on other nodes
-  shell: "kubeadm token list | sed -n 2p | cut -d' ' -f1"
-  register: token
-  changed_when: false
+  register: flannel_out
+  until: "'configured' in flannel_out.stdout"
+  retries: 25
+  delay: 10
 
 - name: remember the apiserver host-port to use for kubeadm join
   shell: "kubectl -n kube-system get pods | grep kube-apiserver | cut -d' ' -f1 | xargs -I{} kubectl -n kube-system describe pod {} | grep -E '(--advertise-address|--secure-port)' | sort | cut -d'=' -f2 | tr '\n' ':' | cut -d':' -f1,2"
   register: apiserver
   until: apiserver.stdout != ""
-  retries: 24
-  delay: 5
-  changed_when: false
+  retries: 12
+  delay: 10
+
+- name: save apiserver host-port on ansible host in a file (workaround)
+  lineinfile:
+    dest: "{{ ansible_persistent_facts_file }}"
+    regexp: "^apiserver:"
+    line: "apiserver: '{{ apiserver.stdout }}'"
+  delegate_to: localhost
+  become: false
+
+- name: remember the token to use for kubeadm join on other nodes
+  shell: "kubeadm token list | sed -n 2p | cut -d' ' -f1"
+  register: token
+  failed_when: "'failed to list bootstrap tokens' in token.stdout"
+
+- name: save apiserver token on ansible host in a file (workaround)
+  lineinfile:
+    dest: "{{ ansible_persistent_facts_file }}"
+    regexp: "^token:"
+    line: "token: '{{ token.stdout }}'"
+  delegate_to: localhost
+  become: false

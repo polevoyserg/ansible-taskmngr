@@ -1,7 +1,7 @@
 ---
 
 app_git: "https://bitbucket.org/bititanb/taskmngr"
-app_repo_local_path: "/tmp/taskmngr-django/"
+app_repo_local_path: "/tmp/taskmngr-django"
 app_dockerfile_path: "{{ app_repo_local_path }}/django/"
 app_required_yum_packages:
   - git

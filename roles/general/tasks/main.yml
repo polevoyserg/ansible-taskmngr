@@ -50,3 +50,11 @@
   yum:
     name: "{{ item }}"
   with_items: "{{ centos_base_packages }}"
+
+- name: create ansible persistent facts file (workaround)
+  file:
+    path: "{{ ansible_persistent_facts_file }}"
+    state: touch
+  delegate_to: localhost
+  become: false
+

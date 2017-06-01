@@ -4,8 +4,12 @@
   shell: "kubeadm reset"
   when: force_kubeadm
 
+- name: get token and apiserver for kubeadm join
+  include_vars: "{{ ansible_persistent_facts_file }}"
+  connection: localhost
+
 - name: join the cluster with kubeadm
-  command: "kubeadm join --token {{ hostvars[groups['kubernetes-master'][0]]['token']['stdout'] }} {{ hostvars[groups['kubernetes-master'][0]]['apiserver']['stdout'] }}"
+  command: "kubeadm join --token {{ token }} {{ apiserver }}"
   register: join
   changed_when: join.rc == 0
   failed_when: join.rc > 0 and join.rc != 2

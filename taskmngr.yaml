@@ -4,6 +4,10 @@
     - { role: kubernetes-master, tags: kubernetes-master }
     - { role: taskmngr-kubernetes, tags: taskmngr-kubernetes }
     - { role: geerlingguy.jenkins, tags: jenkins-master }
+    - { role: elastic.elasticsearch, tags: elk-server }
+    - { role: geerlingguy.filebeat, tags: elk-client }
+    - { role: dj-wasabi.zabbix-server, tags: zabbix-server }
+    - { role: dj-wasabi.zabbix-agent, tags: zabbix-agent }
   vars:
     ### tls
     TLS_DEST_BASENAME: 'taskmngr1'
@@ -28,6 +32,8 @@
 - hosts: taskmngr-node
   roles:
     - { role: kubernetes-node, tags: kubernetes-node }
+    - { role: geerlingguy.filebeat, tags: elk-client }
+    - { role: dj-wasabi.zabbix-agent, tags: zabbix-agent }
   vars:
     ### tls
     TLS_DEST_BASENAME: 'taskmngr1'

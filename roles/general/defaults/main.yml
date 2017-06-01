@@ -1,2 +1,3 @@
 centos_base_packages:
   - epel-release
+ansible_persistent_facts_file: "/etc/ansible/pers_facts.yaml"
