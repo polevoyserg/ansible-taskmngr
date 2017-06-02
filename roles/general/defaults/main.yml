@@ -1,3 +1,5 @@
 centos_base_packages:
   - epel-release
+  - sysstat
+  - net-tools
 ansible_persistent_facts_file: "/etc/ansible/pers_facts.yaml"

@@ -22,3 +22,13 @@
     group: root
     mode: 0644
   notify: restart kibana
+
+- name: configure default kibana index
+  shell: |
+    curl -s -XPUT {{ kibana_elasticsearch_url }}/.kibana/index-pattern/filebeat-* -d '{"title" : "filebeat-*",  "timeFieldName": "@timestamp"}'
+    IDS=$(curl -s {{ kibana_elasticsearch_url }}/.kibana/config/_search?pretty=true | awk -F '"' '/_id/ { print $4  }')
+    for i in $IDS; do
+      curl -s -XPUT {{ kibana_elasticsearch_url }}/.kibana/config/$i -d '{"defaultIndex" : "filebeat-*"}'
+    done
+  register: kibana_index
+  failed_when: "'\"failed\":0' not in kibana_index.stdout or kibana_index.stderr != '' or kibana_index.rc != 0"

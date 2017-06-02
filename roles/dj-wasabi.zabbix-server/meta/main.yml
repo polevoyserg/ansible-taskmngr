@@ -22,6 +22,6 @@ galaxy_info:
   categories:
   - monitoring
 dependencies:
-  - { role: geerlingguy.apache, tags: apache }
   - general
   - geerlingguy.postgresql
+  - geerlingguy.apache

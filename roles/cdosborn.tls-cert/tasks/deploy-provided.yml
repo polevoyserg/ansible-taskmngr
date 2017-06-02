@@ -29,10 +29,18 @@
       dest_path: "{{ TLS_CERT_DEST_DIR_2 }}/{{ TLS_DEST_BASENAME }}.crt"
     # - src_path: "{{ TLS_CACHAIN_SRC_FILE }}"
     #   dest_path: "{{ TLS_CERT_DEST_DIR_2 }}/{{ TLS_DEST_BASENAME }}.cachain.crt"
+  register: certs_copied
 
 - name: update client certificates bundle
   shell: "update-ca-trust extract"
-  notify: restart docker
+  when: certs_copied.changed
+
+- name: restart docker
+  service:
+    name: docker
+    state: restarted
+  ignore_errors: true
+  when: certs_copied.changed
 
 # - name: Full certificate chain created
 #   shell: >

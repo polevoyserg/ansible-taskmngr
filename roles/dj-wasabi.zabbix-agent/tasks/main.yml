@@ -43,7 +43,7 @@
 
 - name: "Get IP of agent_listeninterface when no agent_listenip specified"
   set_fact:
-    agent_listenip: "{{ hostvars[inventory_hostname]['ansible_' + agent_listeninterface]['ipv4'].address | default('0.0.0.0') }}"
+    # agent_listenip: "{{ hostvars[inventory_hostname]['ansible_' + agent_listeninterface]['ipv4'].address | default('0.0.0.0') }}"
     agent_ip: "{{ hostvars[inventory_hostname]['ansible_' + agent_listeninterface]['ipv4'].address | default('0.0.0.0') }}"
   when: "agent_listeninterface and not agent_listenip"
   tags:
@@ -53,20 +53,20 @@
 
 - name: "Default agent_listenip to all when not specified"
   set_fact:
-    agent_listenip: '0.0.0.0'
+    # agent_listenip: '0.0.0.0'
     agent_ip: "{{ hostvars[inventory_hostname]['ansible_default_ipv4'].address }}"
   when: "not agent_listenip"
   tags:
     - zabbix-agent
     - config
 
-- name: "Fail invalid specified agent_listenip"
-  fail:
-    msg: "The agent_listenip does not exist"
-  when: "agent_listenip != '0.0.0.0' and agent_listenip not in ansible_all_ipv4_addresses"
-  tags:
-    - zabbix-agent
-    - config
+# - name: "Fail invalid specified agent_listenip"
+#   fail:
+#     msg: "The agent_listenip does not exist"
+#   when: "agent_listenip != '0.0.0.0' and agent_listenip not in ansible_all_ipv4_addresses"
+#   tags:
+#     - zabbix-agent
+#     - config
 
 - name: "Configure zabbix-agent"
   template: src=zabbix_agentd.conf.j2
@@ -99,6 +99,16 @@
   tags:
     - init
     - service
+
+- name: install zabbix-api
+  delegate_to: localhost
+  pip:
+    name: "zabbix-api"
+    version: "0.4"
+  become: false
+  when: zabbix_api_create_hostgroup or zabbix_api_create_hosts
+  tags:
+    - api
 
 - name: "Create hostgroups"
   local_action:
