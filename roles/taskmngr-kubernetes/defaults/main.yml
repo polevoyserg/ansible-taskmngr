@@ -1,20 +1,36 @@
 ---
 
+app_deploy_testing: false
+app_test: false
+app_deploy_prod: false
+force_create_cert: false
+# app_prod_version:
+# app_test_version:
+app_version: '0.1.0'
+
 app_git: "https://bitbucket.org/bititanb/taskmngr"
 app_repo_local_path: "/tmp/taskmngr-django"
 app_dockerfile_path: "{{ app_repo_local_path }}/django/"
 app_required_yum_packages:
   - git
+app_configs:
+  common: ["common.yaml"]
+  ingress: ["nginx-ingress-controller.yaml"]
+  testing: ["taskmngr-testing.yaml"]
+  production: ["taskmngr.yaml"]
 app_kube_configs:
   - nginx-ingress-controller.yaml
+  - common.yaml
+  - taskmngr-testing.yaml
   - taskmngr.yaml
 kube_app_configs_dir: "/etc/kubernetes/manifests/"
 force_ingress: false
-force_app: false
-app_namespace:
-  label_name: "app"
-  label_value: "taskmngr"
-  namespace_name: "taskmngr"
+force_testing_app: false
+force_prod_app: false
+app_label: {"name": "app", "value": "taskmngr"}
+app_common_label: {"name": "app", "value": "taskmngr-common"}
+app_namespaces: {"production": "default", "testing": "testing"}
+all_namespaces: ["default", "testing", "kube-system"]
 ingress_namespace:
   backend:
     label_name: "k8s-app"
@@ -27,5 +43,7 @@ ingress_namespace:
 app_container_name: "taskmngr-django"
 docker_repo_uri: "taskmngr1:5000"
 kube_tls_secret_name: "tls-secret"
-kube_tls_cert_path: "/etc/pki/tls/certs/{{ TLS_DEST_BASENAME }}.crt"
-kube_tls_key_path: "/etc/pki/tls/private/{{ TLS_DEST_BASENAME }}.key"
+kube_tls_secret_namespaces: ["default", "testing"]
+kube_tls_hostname: "taskmngr1"
+kube_tls_cert_path: "/etc/pki/tls/certs/{{ kube_tls_hostname }}.crt"
+kube_tls_key_path: "/etc/pki/tls/private/{{ kube_tls_hostname }}.key"

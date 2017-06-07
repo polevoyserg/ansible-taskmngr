@@ -7,21 +7,30 @@
   with_items: "{{ app_required_yum_packages }}"
 
 - name: delete secret tls
-  shell: "kubectl delete secret {{ kube_tls_secret_name }}"
+  shell: "kubectl delete secret {{ kube_tls_secret_name }} -n {{ item }}"
+  with_items: "{{ kube_tls_secret_namespaces }}"
   failed_when: false
 
 - name: create secret tls
-  shell: "kubectl create secret tls {{ kube_tls_secret_name }} --key {{ kube_tls_key_path }} --cert {{ kube_tls_cert_path }}"
+  shell: "kubectl create secret tls {{ kube_tls_secret_name }} --key {{ kube_tls_key_path }} --cert {{ kube_tls_cert_path }} -n {{ item }}"
+  with_items: "{{ kube_tls_secret_namespaces }}"
 
 - name: get app from git
   git:
     repo: '{{ app_git }}'
     dest: '{{ app_repo_local_path }}'
 
+- name: get commit sha
+  shell: |
+    cd {{ app_repo_local_path }}
+    git rev-parse HEAD
+  register: git_commit_sha
+
 - name: build and push app container
   docker_image:
     path: "{{ app_dockerfile_path }}"
     name: "{{ app_container_name }}"
+    tag: "{{ app_version }}.{{ git_commit_sha.stdout }}"
     repository: "{{ docker_repo_uri }}/{{ app_container_name }}"
     push: yes
 
@@ -40,14 +49,46 @@
     - "{{ ingress_namespace.backend }}"
     - "{{ ingress_namespace.controller }}"
 
-- name: delete application services from cluster
-  shell: "kubectl delete all --ignore-not-found -n {{ item.namespace_name }} -l {{ item.label_name }}={{ item.label_value }}"
+- name: delete common app services from cluster
+  shell: "kubectl delete all --ignore-not-found -n {{ item }} -l {{ app_common_label.name }}={{ app_common_label.value }}"
   with_items:
-    - "{{ app_namespace }}"
-  when: force_app
+    - all_namespaces
+  when: "(force_testing_app or force_prod_app) and (app_deploy_testing or app_deploy_prod)"
 
-- name: apply application configs in cluster
+- name: delete application services from testing cluster
+  shell: "kubectl delete all --ignore-not-found -n {{ app_namespaces.testing }} -l {{ app_label.name }}={{ app_label.value }}"
+  when: force_testing_app
+
+- name: delete application services from production cluster
+  shell: "kubectl delete all --ignore-not-found -n {{ app_namespaces.production }} -l {{ app_label.name }}={{ app_label.value }}"
+  when: force_prod_app
+
+- name: apply ingress configs in cluster
   shell: "kubectl apply -f {{ item[0] }}{{ item[1] }}"
-  with_nested:
-    - "{{ kube_app_configs_dir }}"
-    - "{{ app_kube_configs }}"
+  with_nested: ["{{ kube_app_configs_dir }}", "{{ app_configs.ingress }}"]
+
+- name: apply common app configs in cluster
+  shell: "kubectl apply -f {{ item[0] }}{{ item[1] }}"
+  with_nested: ["{{ kube_app_configs_dir }}", "{{ app_configs.common }}"]
+  when: app_deploy_testing or app_deploy_prod
+
+- name: apply app configs in testing
+  shell: "kubectl apply -f {{ item[0] }}{{ item[1] }}"
+  with_nested: ["{{ kube_app_configs_dir }}", "{{ app_configs.testing }}"]
+  when: app_deploy_testing
+
+- name: get first running pod name in testing
+  shell: "kubectl get pods -n {{ app_namespaces.testing }} -o name | head -n1 | cut -d'/' -f2"
+  register: testing_pod
+  failed_when: testing_pod.stdout == ''
+  when: app_test
+
+- name: run tests in testing
+  shell: "kubectl exec -n {{ app_namespaces.testing }} {{ testing_pod.stdout }} -c django -- sh -c 'cd /django && python manage.py test'"
+  register: tests
+  when: app_test
+
+- name: apply app configs in production
+  shell: "kubectl apply -f {{ item[0] }}{{ item[1] }}"
+  with_nested: ["{{ kube_app_configs_dir }}", "{{ app_configs.production }}"]
+  when: app_deploy_prod

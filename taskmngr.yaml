@@ -10,24 +10,6 @@
     - { role: geerlingguy.kibana, tags: elk-server }
     - { role: dj-wasabi.zabbix-server, tags: zabbix-server }
     - { role: dj-wasabi.zabbix-agent, tags: zabbix-agent }
-  vars:
-    ### tls
-    TLS_DEST_BASENAME: 'taskmngr1'
-    TLS_PRIVKEY_SRC_FILE: "files/{{ TLS_DEST_BASENAME }}.key"
-    TLS_CERT_SRC_FILE: "files/{{ TLS_DEST_BASENAME }}.crt"
-    TLS_CACHAIN_SRC_FILE: "files/{{ TLS_DEST_BASENAME }}.cachain.crt"
-    TLS_CERT_DEST_DIR_2: "/etc/pki/ca-trust/source/anchors"
-    ### jenkins
-    jenkins_hostname: taskmngr1
-    jenkins_repo_url: http://pkg.jenkins-ci.org/redhat-stable/jenkins.repo
-    jenkins_repo_key_url: http://pkg.jenkins-ci.org/redhat-stable/jenkins-ci.org.key
-    java_version: 8
-    # public_hostname: 'taskmngr1'
-    # nexus_admin_password: 'admin'
-    # nexus_timezone: 'Europe/Moscow'
-    # apache_create_vhosts: no
-    # httpd_server_name: 'taskmngr1'
-    # httpd_setup_enable: true
   environment:
     KUBECONFIG: /home/deploy/admin.conf
 
@@ -36,12 +18,5 @@
     - { role: kubernetes-node, tags: kubernetes-node }
     - { role: geerlingguy.filebeat, tags: elk-client }
     - { role: dj-wasabi.zabbix-agent, tags: zabbix-agent }
-  vars:
-    ### tls
-    TLS_DEST_BASENAME: 'taskmngr1'
-    TLS_PRIVKEY_SRC_FILE: "files/{{ TLS_DEST_BASENAME }}.key"
-    TLS_CERT_SRC_FILE: "files/{{ TLS_DEST_BASENAME }}.crt"
-    TLS_CACHAIN_SRC_FILE: "files/{{ TLS_DEST_BASENAME }}.cachain.crt"
-    TLS_CERT_DEST_DIR_2: "/etc/pki/ca-trust/source/anchors"
   environment:
     KUBECONFIG: /home/deploy/admin.conf

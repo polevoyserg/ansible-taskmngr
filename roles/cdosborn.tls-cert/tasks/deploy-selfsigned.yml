@@ -16,7 +16,7 @@
   lineinfile:
     dest: "/etc/pki/tls/openssl.cnf"
     regexp: "^subjectAltName"
-    line: "subjectAltName=DNS:{{ TLS_DEST_BASENAME }}"
+    line: "subjectAltName=DNS:{{ tls_subjectAltNames[0] }}, DNS:{{ tls_subjectAltNames[1] }}"
     insertafter: '^.* v3_ca .*$'
 
 - name: check if cert is already exists

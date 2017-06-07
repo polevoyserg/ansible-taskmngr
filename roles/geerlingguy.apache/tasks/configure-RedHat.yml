@@ -6,7 +6,6 @@
     line: "{{ item.line }}"
     state: present
   with_items: "{{ apache_ports_configuration_items }}"
-  notify: restart apache
 
 - name: configure ssl
   lineinfile:
@@ -14,7 +13,6 @@
     regexp: "^Listen"
     line: "Listen {{ apache_listen_port_ssl }} https"
     state: present
-  notify: restart apache
 
 - name: Check whether certificates defined in vhosts exist.
   stat: path={{ item.certificate_file }}

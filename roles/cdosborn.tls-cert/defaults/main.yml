@@ -1,4 +1,11 @@
 ---
 
+TLS_DEST_BASENAME: 'taskmngr1'
+TLS_PRIVKEY_SRC_FILE: "files/{{ TLS_DEST_BASENAME }}.key"
+TLS_CERT_SRC_FILE: "files/{{ TLS_DEST_BASENAME }}.crt"
+TLS_CACHAIN_SRC_FILE: "files/{{ TLS_DEST_BASENAME }}.cachain.crt"
+TLS_CERT_DEST_DIR_2: "/etc/pki/ca-trust/source/anchors"
+tls_subjectAltNames: ["{{TLS_DEST_BASENAME}}", "testing.taskmngr1"]
+
 TLS_CREATE_SELFSIGNED: false
 force_create_cert: false

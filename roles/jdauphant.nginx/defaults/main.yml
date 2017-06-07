@@ -32,10 +32,11 @@ nginx_http_params: "{{ nginx_http_default_params }}"
 
 nginx_stream_params: []
 
+nginx_server_name: "taskmngr1"
 nginx_sites:
   default:
      - listen 8085 default_server
-     - server_name "{{ TLS_DEST_BASENAME }}"
+     - server_name "{{ nginx_server_name }}"
      # - auth_basic "Restricted Access"
      # - auth_basic_user_file /etc/nginx/htpasswd.users
      - location / {
