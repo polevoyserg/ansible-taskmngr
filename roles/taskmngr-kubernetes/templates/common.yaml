@@ -1,0 +1,48 @@
+
+# kind: ClusterRoleBinding
+# apiVersion: rbac.authorization.k8s.io/v1beta1
+# metadata:
+#   name: default-add-on-cluster-admin
+#   labels:
+#     app: taskmngr-common
+# roleRef:
+#   apiGroup: rbac.authorization.k8s.io
+#   kind: ClusterRole
+#   name: cluster-admin
+# subjects:
+#   - kind: ServiceAccount
+#     name: default
+#     namespace: default
+
+---
+
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: add-on-cluster-admin
+  labels:
+    app: taskmngr-common
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: kube-system
+
+# ---
+
+# apiVersion: v1
+# kind: ResourceQuota
+# metadata:
+#   name: taskmngr-quota
+#   labels:
+#     app: taskmngr-common
+# spec:
+#   hard:
+#     requests.cpu: "0.7"
+#     limits.cpu: "1.5"
+#     requests.memory: 300Mi
+#     limits.memory: 600Mi
+
