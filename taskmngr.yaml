@@ -1,5 +1,6 @@
 - hosts: taskmngr-master
   roles:
+    - { role: general, tags: general }
     - { role: nephelaiio.docker-registry, tags: docker-registry }
     - { role: kubernetes-master, tags: kubernetes-master }
     - { role: geerlingguy.jenkins, tags: jenkins-master }
@@ -15,6 +16,7 @@
 
 - hosts: taskmngr-node
   roles:
+    - { role: general, tags: general }
     - { role: kubernetes-node, tags: kubernetes-node }
     - { role: geerlingguy.filebeat, tags: elk-client }
     - { role: dj-wasabi.zabbix-agent, tags: zabbix-agent }
