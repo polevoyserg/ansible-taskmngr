@@ -90,8 +90,12 @@
 #     port: 5432
 #   when: app_test
 
+- pause:
+    seconds: 15
+  when: app_deploy_testing and app_test
+
 - name: get first running pod name in testing
-  shell: "kubectl get pods -n {{ app_namespaces.testing }} -o name | head -n1 | cut -d'/' -f2"
+  shell: "kubectl get pods -n {{ app_namespaces.testing }} --no-headers | grep -v Terminating | head -n1 | cut -d' ' -f1"
   register: testing_pod
   failed_when: testing_pod.stdout == ''
   when: app_test
@@ -100,13 +104,16 @@
   shell: "kubectl get pod -n {{ app_namespaces.testing }} {{ testing_pod.stdout }} | grep Running"
   register: testing_up
   until: testing_up.stdout != ''
-  retries: 20
+  retries: 15
   delay: 10
   when: app_test
 
 - name: run tests in testing
   shell: "kubectl exec -n {{ app_namespaces.testing }} {{ testing_pod.stdout }} -c django -- sh -c 'cd /django && python manage.py test'"
   register: tests
+  until: "'container not found' not in tests.stderr"
+  retries: 7
+  delay: 10
   when: app_test
 
 - name: apply app configs in production
