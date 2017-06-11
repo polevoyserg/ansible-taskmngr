@@ -85,10 +85,23 @@
   with_nested: ["{{ kube_app_configs_dir }}", "{{ app_configs.testing }}"]
   when: app_deploy_testing
 
+# - name: wait until database is ready
+#   wait_for:
+#     port: 5432
+#   when: app_test
+
 - name: get first running pod name in testing
   shell: "kubectl get pods -n {{ app_namespaces.testing }} -o name | head -n1 | cut -d'/' -f2"
   register: testing_pod
   failed_when: testing_pod.stdout == ''
+  when: app_test
+
+- name: wait until all containers started
+  shell: "kubectl get pod -n {{ app_namespaces.testing }} {{ testing_pod.stdout }} | grep Running"
+  register: testing_up
+  until: testing_up.stdout != ''
+  retries: 20
+  delay: 10
   when: app_test
 
 - name: run tests in testing
