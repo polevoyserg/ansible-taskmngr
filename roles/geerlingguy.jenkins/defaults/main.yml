@@ -26,3 +26,11 @@ jenkins_init_changes:
     value: "--prefix={{ jenkins_url_prefix }}"
   - option: "{{ jenkins_java_options_env_var }}"
     value: "{{ jenkins_java_options }}"
+
+jenkins_config_files:
+  - config.xml
+  - locale.xml
+
+jenkins_job_config_path: "files/jobs"
+jenkins_jobs:
+  - taskmngr

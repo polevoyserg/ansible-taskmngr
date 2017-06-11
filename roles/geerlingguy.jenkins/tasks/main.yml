@@ -58,3 +58,47 @@
 
 # Update Jenkins and install configured plugins.
 - include: plugins.yml
+
+- name: copy jenkins config files
+  copy:
+    src: "{{ item }}"
+    dest: "{{ jenkins_home }}/{{ item }}"
+    owner: jenkins
+    group: jenkins
+    mode: 0644
+  with_items: "{{ jenkins_config_files }}"
+  notify: restart jenkins
+
+# - name: install python-jenkins
+#   local_action:
+#     module: pip
+#     name: "{{ item }}"
+#     state: present
+#   with_items:
+#     - lxml
+#     - python-jenkins
+
+- name: add jobs
+  shell: "java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }}{{ jenkins_url_prefix }} create-job {{ item }} --username {{ jenkins_admin_username }} --password {{ jenkins_admin_password }} < {{ role_path }}/{{ jenkins_job_config_path }}/{{ item }}.xml"
+  with_items: "{{ jenkins_jobs }}"
+  register: result
+  failed_when: "result.rc != 0 and 'already exists' not in result.stderr"
+  notify: restart jenkins
+
+- name: make sure workspace dir exists
+  file:
+    path: "{{ jenkins_home }}/workspace/{{ item }}"
+    state: directory
+    mode: 0755
+    owner: jenkins
+    group: jenkins
+  with_items: "{{ jenkins_jobs }}"
+
+# - name: install job
+#   jenkins_job:
+#     config: "{{ lookup('file', 'files/jobs/taskmngr.xml') }}"
+#     name: "taskmngr"
+#     url: "http://{{ jenkins_hostname }}:{{ jenkins_http_port }}{{ jenkins_url_prefix }}"
+#     user: "admin"
+#     password: "admin"
+#   notify: restart jenkins
