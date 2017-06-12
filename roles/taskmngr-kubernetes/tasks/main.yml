@@ -1,17 +1,5 @@
 ---
 
-- name: delete secret tls
-  shell: "kubectl delete secret {{ kube_tls_secret_name }} -n {{ item }}"
-  with_items: "{{ kube_tls_secret_namespaces }}"
-  failed_when: false
-  when: force_create_cert
-
-- name: create secret tls
-  shell: "kubectl create secret tls {{ kube_tls_secret_name }} --key {{ kube_tls_key_path }} --cert {{ kube_tls_cert_path }} -n {{ item }}"
-  with_items: "{{ kube_tls_secret_namespaces }}"
-  register: create_secret
-  failed_when: "('already exists' not in create_secret.stderr) and create_secret.rc > 0"
-
 - name: install git
   yum:
     name: git
@@ -47,7 +35,7 @@
   with_nested:
     - "{{ app_kube_configs }}"
     - "{{ kube_app_configs_dir }}"
-  when: app_deploy_testing or app_deploy_prod
+  when: app_deploy_testing or app_deploy_prod or app_build
 
 - name: delete ingress services from cluster
   shell: "kubectl delete all --ignore-not-found -n {{ item.namespace_name }} -l {{ item.label_name }}={{ item.label_value }}"
@@ -78,7 +66,19 @@
 - name: apply common app configs in cluster
   shell: "kubectl apply -f {{ item[0] }}{{ item[1] }}"
   with_nested: ["{{ kube_app_configs_dir }}", "{{ app_configs.common }}"]
-  when: app_deploy_testing or app_deploy_prod
+  when: app_deploy_testing or app_deploy_prod or app_build
+
+- name: delete secret tls
+  shell: "kubectl delete secret {{ kube_tls_secret_name }} -n {{ item }}"
+  with_items: "{{ kube_tls_secret_namespaces }}"
+  failed_when: false
+  when: force_create_cert
+
+- name: create secret tls
+  shell: "kubectl create secret tls {{ kube_tls_secret_name }} --key {{ kube_tls_key_path }} --cert {{ kube_tls_cert_path }} -n {{ item }}"
+  with_items: "{{ kube_tls_secret_namespaces }}"
+  register: create_secret
+  failed_when: "('already exists' not in create_secret.stderr) and create_secret.rc > 0"
 
 - name: apply app configs in testing
   shell: "kubectl apply -f {{ item[0] }}{{ item[1] }}"
@@ -104,7 +104,7 @@
   shell: "kubectl get pod -n {{ app_namespaces.testing }} {{ testing_pod.stdout }} | grep Running"
   register: testing_up
   until: testing_up.stdout != ''
-  retries: 15
+  retries: 25
   delay: 10
   when: app_test
 

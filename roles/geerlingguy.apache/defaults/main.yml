@@ -5,7 +5,7 @@ apache_listen_ip: "*"
 apache_listen_port: 8088
 apache_listen_port_ssl: 8083
 
-apache_create_vhosts: true
+apache_create_vhosts: false
 apache_vhosts_filename: "vhosts.conf"
 apache_vhosts_template: "vhosts.conf.j2"
 

@@ -1,36 +1,105 @@
 ---
-# Optional method of pinning a specific version of Jenkins and/or overriding the
-# default Jenkins packaging URL.
-# jenkins_version: "1.644"
-# jenkins_pkg_url: "https://www.example.com"
-jenkins_hostname: taskmngr1
-jenkins_repo_url: http://pkg.jenkins-ci.org/redhat-stable/jenkins.repo
-jenkins_repo_key_url: http://pkg.jenkins-ci.org/redhat-stable/jenkins-ci.org.key
+# Variable setup.
+- name: Include OS-Specific variables
+  include_vars: "{{ ansible_os_family }}.yml"
 
-jenkins_connection_delay: 5
-jenkins_connection_retries: 60
-jenkins_home: /var/lib/jenkins
-jenkins_http_port: 8080
-jenkins_jar_location: /opt/jenkins-cli.jar
-jenkins_plugins: ["ansible", "git", "locale", "workflow-aggregator"]
-jenkins_url_prefix: ""
-jenkins_java_options: "-Djenkins.install.runSetupWizard=false"
-jenkins_plugin_updates_expiration: 86400
+- name: Define jenkins_repo_url
+  set_fact:
+    jenkins_repo_url: "{{ __jenkins_repo_url }}"
+  when: jenkins_repo_url is not defined
 
-jenkins_admin_username: admin
-jenkins_admin_password: admin
-jenkins_admin_password_file: ""
+- name: Define jenkins_repo_key_url
+  set_fact:
+    jenkins_repo_key_url: "{{ __jenkins_repo_key_url }}"
+  when: jenkins_repo_key_url is not defined
 
-jenkins_init_changes:
-  - option: "JENKINS_ARGS"
-    value: "--prefix={{ jenkins_url_prefix }}"
-  - option: "{{ jenkins_java_options_env_var }}"
-    value: "{{ jenkins_java_options }}"
+- name: Define jenkins_pkg_url
+  set_fact:
+    jenkins_pkg_url: "{{ __jenkins_pkg_url }}"
+  when: jenkins_pkg_url is not defined
 
-jenkins_config_files:
-  - config.xml
-  - locale.xml
+# Setup/install tasks.
+- include: setup-RedHat.yml
+  when: ansible_os_family == 'RedHat'
 
-jenkins_job_config_path: "files/jobs"
-jenkins_jobs:
-  - taskmngr
+- include: setup-Debian.yml
+  when: ansible_os_family == 'Debian'
+
+# Configure Jenkins init settings.
+- include: settings.yml
+
+# Make sure Jenkins starts, then configure Jenkins.
+- name: Ensure Jenkins is started and runs on startup.
+  service: name=jenkins state=started enabled=yes
+
+- name: Wait for Jenkins to start up before proceeding.
+  shell: "curl -D - --silent --max-time 5 http://{{ jenkins_hostname }}:{{ jenkins_http_port }}{{ jenkins_url_prefix }}/cli/"
+  register: result
+  until: (result.stdout.find("403 Forbidden") != -1) or (result.stdout.find("200 OK") != -1) and (result.stdout.find("Please wait while") == -1)
+  retries: "{{ jenkins_connection_retries }}"
+  delay: "{{ jenkins_connection_delay }}"
+  changed_when: false
+  check_mode: no
+
+- name: Get the jenkins-cli jarfile from the Jenkins server.
+  get_url:
+    url: "http://{{ jenkins_hostname }}:{{ jenkins_http_port }}{{ jenkins_url_prefix }}/jnlpJars/jenkins-cli.jar"
+    dest: "{{ jenkins_jar_location }}"
+  register: jarfile_get
+  until: "'OK' in jarfile_get.msg or 'file already exists' in jarfile_get.msg"
+  retries: 5
+  delay: 10
+  check_mode: no
+
+- name: Remove Jenkins security init scripts after first startup.
+  file:
+    path: "{{ jenkins_home }}/init.groovy.d/basic-security.groovy"
+    state: absent
+
+# Update Jenkins and install configured plugins.
+- include: plugins.yml
+
+- name: copy jenkins config files
+  copy:
+    src: "{{ item }}"
+    dest: "{{ jenkins_home }}/{{ item }}"
+    owner: jenkins
+    group: jenkins
+    mode: 0644
+  with_items: "{{ jenkins_config_files }}"
+  notify: restart jenkins
+
+# - name: install python-jenkins
+#   local_action:
+#     module: pip
+#     name: "{{ item }}"
+#     state: present
+#   with_items:
+#     - lxml
+#     - python-jenkins
+
+- meta: flush_handlers
+
+- name: add jobs
+  shell: "java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }}{{ jenkins_url_prefix }} create-job {{ item }} --username {{ jenkins_admin_username }} --password {{ jenkins_admin_password }} < {{ role_path }}/{{ jenkins_job_config_path }}/{{ item }}.xml"
+  with_items: "{{ jenkins_jobs }}"
+  register: result
+  failed_when: "result.rc != 0 and 'already exists' not in result.stderr"
+
+- name: make sure workspace dir exists
+  file:
+    path: "{{ jenkins_home }}/workspace/{{ item }}"
+    state: directory
+    mode: 0755
+    owner: jenkins
+    group: jenkins
+  with_items: "{{ jenkins_jobs }}"
+
+# - name: install job
+#   jenkins_job:
+#     config: "{{ lookup('file', 'files/jobs/taskmngr.xml') }}"
+#     name: "taskmngr"
+#     url: "http://{{ jenkins_hostname }}:{{ jenkins_http_port }}{{ jenkins_url_prefix }}"
+#     user: "admin"
+#     password: "admin"
+#   notify: restart jenkins
