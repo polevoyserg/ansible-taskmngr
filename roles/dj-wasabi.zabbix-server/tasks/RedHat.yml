@@ -135,3 +135,5 @@
   when: selinux_allow_zabbix_can_network
   tags:
     - zabbix-server
+
+- meta: flush_handlers

@@ -33,3 +33,7 @@ Session.vim
 tags
 
 # End of https://www.gitignore.io/api/linux,vim,ansible
+
+pers_facts.yaml
+files/*.crt
+files/*.key
