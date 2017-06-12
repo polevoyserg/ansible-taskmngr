@@ -84,7 +84,7 @@
   shell: "java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }}{{ jenkins_url_prefix }} create-job {{ item }} --username {{ jenkins_admin_username }} --password {{ jenkins_admin_password }} < {{ role_path }}/{{ jenkins_job_config_path }}/{{ item }}.xml"
   with_items: "{{ jenkins_jobs }}"
   register: result
-  until: "'Connection refused' not in result.stderr"
+  until: "('Connection refused' or 'response code: 50') not in result.stderr"
   retries: 15
   delay: 10
   failed_when: "result.rc != 0 and 'already exists' not in result.stderr"

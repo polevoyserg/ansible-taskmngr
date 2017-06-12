@@ -240,7 +240,7 @@ spec:
                   # resources:
                   #     limits:
                   #         cpu: 150m
-                - image: taskmngr1:5000/taskmngr-django:{{ app_version }}.{{ git_commit_sha.stdout }}
+                - image: taskmngr1:5000/taskmngr-django:{{ app_version.stdout }}.{{ git_commit_sha.stdout }}
                   name: django
                   imagePullPolicy: Always
                   command: ["/bin/sh"]

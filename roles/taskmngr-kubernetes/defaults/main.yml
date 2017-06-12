@@ -8,11 +8,13 @@ app_deploy_prod: false
 force_create_cert: false
 # app_prod_version:
 # app_test_version:
-app_version: '0.1.0'
+# app_version: '0.1.0'
 
 app_git: "https://bitbucket.org/bititanb/taskmngr"
 app_repo_local_path: "/tmp/taskmngr-django"
-app_dockerfile_path: "{{ app_repo_local_path }}/django/"
+app_dockerfile_path: "{{ app_repo_local_path }}/django"
+app_django_path: "{{ app_repo_local_path }}/django"
+app_settings_path: "{{ app_django_path }}/taskmngr/settings.py"
 app_configs:
   common: ["common.yaml"]
   ingress: ["nginx-ingress-controller.yaml"]

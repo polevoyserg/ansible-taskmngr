@@ -10,7 +10,15 @@
   git:
     repo: '{{ app_git }}'
     dest: '{{ app_repo_local_path }}'
+    force: true
+    version: master
   when: app_checkout
+
+- name: get app version
+  shell: "grep -E '^APP_VERSION' {{ app_settings_path }} | cut -d\\' -f2"
+  register: app_version 
+  failed_when: app_version.stdout == '' or app_version.rc > 0
+  when: app_build or app_deploy_testing or app_deploy_prod
 
 - name: get commit sha
   shell: |
@@ -19,11 +27,18 @@
   register: git_commit_sha
   when: app_build or app_deploy_testing or app_deploy_prod
 
+- name: save git revision in django settings
+  lineinfile:
+    path: "{{ app_settings_path }}"
+    regexp: "^APP_REVISION_SHORT"
+    line: "APP_REVISION_SHORT = '{{ git_commit_sha.stdout }}'"
+  when: app_build
+
 - name: build and push app container
   docker_image:
     path: "{{ app_dockerfile_path }}"
     name: "{{ app_container_name }}"
-    tag: "{{ app_version }}.{{ git_commit_sha.stdout }}"
+    tag: "{{ app_version.stdout }}.{{ git_commit_sha.stdout }}"
     repository: "{{ docker_repo_uri }}/{{ app_container_name }}"
     push: yes
   when: app_build
@@ -66,7 +81,7 @@
 - name: apply common app configs in cluster
   shell: "kubectl apply -f {{ item[0] }}{{ item[1] }}"
   with_nested: ["{{ kube_app_configs_dir }}", "{{ app_configs.common }}"]
-  when: app_deploy_testing or app_deploy_prod or app_build
+  # when: app_deploy_testing or app_deploy_prod or app_build
 
 - name: delete secret tls
   shell: "kubectl delete secret {{ kube_tls_secret_name }} -n {{ item }}"
@@ -104,7 +119,7 @@
   shell: "kubectl get pod -n {{ app_namespaces.testing }} {{ testing_pod.stdout }} | grep Running"
   register: testing_up
   until: testing_up.stdout != ''
-  retries: 25
+  retries: 35
   delay: 10
   when: app_test
 
