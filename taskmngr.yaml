@@ -9,8 +9,8 @@
     - { role: geerlingguy.kibana, tags: elk-server }
     - { role: dj-wasabi.zabbix-server, tags: zabbix-server }
     - { role: dj-wasabi.zabbix-agent, tags: zabbix-agent }
-    # - { role: taskmngr-kubernetes, tags: taskmngr-kubernetes }
     - { role: geerlingguy.jenkins, tags: jenkins-master }
+    - { role: taskmngr-kubernetes, tags: taskmngr-kubernetes }
   environment:
     KUBECONFIG: /home/deploy/admin.conf
 
