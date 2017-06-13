@@ -16,14 +16,14 @@
 
 - name: get app version
   shell: "grep -E '^APP_VERSION' {{ app_settings_path }} | cut -d\\' -f2"
-  register: app_version 
+  register: app_version
   failed_when: app_version.stdout == '' or app_version.rc > 0
   when: app_build or app_deploy_testing or app_deploy_prod
 
 - name: get commit sha
   shell: |
     cd {{ app_repo_local_path }}
-    git rev-parse HEAD
+    git rev-parse HEAD | cut -c -6
   register: git_commit_sha
   when: app_build or app_deploy_testing or app_deploy_prod
 
