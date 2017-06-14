@@ -81,18 +81,20 @@
 - name: apply common app configs in cluster
   shell: "kubectl apply -f {{ item[0] }}{{ item[1] }}"
   with_nested: ["{{ kube_app_configs_dir }}", "{{ app_configs.common }}"]
+  when: app_deploy_testing or app_deploy_prod or app_build
   # when: app_deploy_testing or app_deploy_prod or app_build
 
 - name: delete secret tls
   shell: "kubectl delete secret {{ kube_tls_secret_name }} -n {{ item }}"
   with_items: "{{ kube_tls_secret_namespaces }}"
   failed_when: false
-  when: force_create_cert
+  when: (app_deploy_testing or app_deploy_prod or app_build) and force_create_cert
 
 - name: create secret tls
   shell: "kubectl create secret tls {{ kube_tls_secret_name }} --key {{ kube_tls_key_path }} --cert {{ kube_tls_cert_path }} -n {{ item }}"
   with_items: "{{ kube_tls_secret_namespaces }}"
   register: create_secret
+  when: app_deploy_testing or app_deploy_prod or app_build
   failed_when: "('already exists' not in create_secret.stderr) and create_secret.rc > 0"
 
 - name: apply app configs in testing
