@@ -5,7 +5,7 @@
   when: force_kubeadm
 
 - name: initialize cluster with kubeadm
-  shell: "kubeadm init --pod-network-cidr=10.244.0.0/16"
+  shell: "kubeadm init --apiserver-advertise-address {{ kube_master_ip }} --pod-network-cidr=10.244.0.0/16"
   register: kubeadm_init
   changed_when: kubeadm_init.rc == 0
   failed_when: kubeadm_init.rc > 0 and kubeadm_init.rc != 2
