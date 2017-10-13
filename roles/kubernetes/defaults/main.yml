@@ -4,6 +4,8 @@ kubelet_package_name: "kubelet"
 kubeadm_package_name: "kubeadm"
 kubectl_package_name: "kubectl"
 kubecni_package_name: "kubernetes-cni"
+disable_swap: true
+
 kube_base_binaries:
   - docker
   - kubelet

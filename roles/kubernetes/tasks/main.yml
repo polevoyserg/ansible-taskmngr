@@ -1,5 +1,21 @@
 ---
 
+- name: disable swap for session (required for kube)
+  shell: "swapoff -a"
+  changed_when: false
+  when: disable_swap == true
+  tags: ['swap']
+
+- name: disable swap permanently (required for kube)
+  lineinfile:
+    dest: /etc/fstab
+    regexp: '^([^#]* swap .*)'
+    line: '# \1'
+    backrefs: yes
+    state: present
+  when: disable_swap == true
+  tags: ['swap']
+
 - name: install iptables management utils
   yum:
     name: iptables-services
