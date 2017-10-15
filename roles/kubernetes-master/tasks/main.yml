@@ -8,7 +8,9 @@
   shell: "kubeadm init --apiserver-advertise-address {{ kube_master_ip }} --pod-network-cidr=10.244.0.0/16 --token-ttl 0"
   register: kubeadm_init
   changed_when: kubeadm_init.rc == 0
-  failed_when: kubeadm_init.rc > 0 and kubeadm_init.rc != 2
+  failed_when: '"initialized successfully" not in kubeadm_init.stdout'
+  retries: 3
+  delay: 10
 
 - name: copy kubeconfig file to enable kubectl
   shell: |
@@ -25,7 +27,8 @@
 
 - name: deploy flannel network in pod with kubectl
   shell: |
-    kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel-rbac.yml
+    # looks like kube-flannel-rbac.yml got merged with kube-flannel.yml
+    #kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel-rbac.yml
     kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
   register: flannel_out
   until: "'configured' in flannel_out.stdout"
@@ -43,7 +46,7 @@
   shell: "kubectl -n kube-system get pods | grep kube-apiserver | cut -d' ' -f1 | xargs -I{} kubectl -n kube-system describe pod {} | grep -E '(--advertise-address|--secure-port)' | sort | cut -d'=' -f2 | tr '\n' ':' | cut -d':' -f1,2"
   register: apiserver
   until: apiserver.stdout != ""
-  retries: 12
+  retries: 20
   delay: 10
 
 - name: save apiserver host-port on ansible host in a file (workaround)
