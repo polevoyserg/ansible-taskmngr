@@ -13,6 +13,13 @@
   register: join
   changed_when: join.rc == 0
   failed_when: join.rc > 0 and join.rc != 2
+  retries: 3
+  delay: 10
+
+- name: wait until kubelet.conf created
+  wait_for: 
+    path: "/etc/kubernetes/kubelet.conf"
+    state: present
 
 - name: copy kubeconfig file to enable kubectl
   shell: |

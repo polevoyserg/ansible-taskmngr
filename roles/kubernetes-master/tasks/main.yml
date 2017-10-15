@@ -27,9 +27,8 @@
 
 - name: deploy flannel network in pod with kubectl
   shell: |
-    # looks like kube-flannel-rbac.yml got merged with kube-flannel.yml
-    #kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel-rbac.yml
-    kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+    kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
+    kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-legacy.yml
   register: flannel_out
   until: "'configured' in flannel_out.stdout"
   retries: 25
