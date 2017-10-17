@@ -34,3 +34,5 @@ jenkins_config_files:
 jenkins_job_config_path: "files/jobs"
 jenkins_jobs:
   - taskmngr
+
+#replace_jobs: true
