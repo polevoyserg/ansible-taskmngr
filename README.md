@@ -2,7 +2,7 @@
 ### Requirements for ansible host ###
 * Ansible, sshpass installed.
 
-yum install -y epel-release && yum install -y git ansible sshpass && rm -rf /etc/ansible && mkdir -p /etc/ansible && git clone https://bitbucket.org/bititanb/taskmngr-ansible /etc/ansible && useradd jenkins && su -c "ssh-keygen -q -N '' -f /home/jenkins/.ssh/id_rsa" - jenkins && chmod -R g=u,o=u /etc/ansible && yum install -y sshfs && ansible-playbook -vvvv /etc/ansible/taskmngr.yaml
+yum install -y epel-release && yum install -y git ansible sshpass && rm -rf /etc/ansible && mkdir -p /etc/ansible && git clone https://github.com/bititanb/ansible-taskmngr /etc/ansible && useradd jenkins && su -c "ssh-keygen -q -N '' -f /home/jenkins/.ssh/id_rsa" - jenkins && chmod -R g=u,o=u /etc/ansible && yum install -y sshfs && ansible-playbook -vvvv /etc/ansible/taskmngr.yaml
 
 # useradd jenkins && mkdir -p /home/jenkins && chown jenkins:jenkins /home/jenkins && chmod 700 /home/jenkins && usermod -d /home/jenkins jenkins ; su -c "ssh-keygen -q -N '' -f /home/jenkins/.ssh/id_rsa" - jenkins && chown -R jenkins:jenkins /etc/ansible
 
