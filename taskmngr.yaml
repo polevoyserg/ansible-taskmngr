@@ -13,8 +13,6 @@
     - { role: taskmngr-kubernetes, tags: taskmngr-kubernetes }
   environment:
     KUBECONFIG: /home/deploy/admin.conf
-  vars:
-    kube_master_ip: "192.168.1.230"
 
 - hosts: taskmngr-node
   roles:
