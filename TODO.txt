@@ -1,0 +1,2 @@
+  1. geerlingguy.kibana in "configure default kibana index" sometimes creates new index, but DO NOT assigns it as a default. Need to split that task in two and repeat the second until it succeeds.
+  1.1 maybe find a way to redirect to "Discover" page automatically and set timerange to something like one month instead of 15 mins?
