@@ -7,6 +7,7 @@
 - name: enable overlayfs for docker systemd service
   blockinfile:
     path: /etc/systemd/system/docker.service.d/override.conf
+    create: yes
     block: |
       [Service]
       ExecStart=
