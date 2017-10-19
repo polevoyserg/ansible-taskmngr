@@ -1,24 +1,34 @@
 - hosts: taskmngr-master
   roles:
     - { role: general, tags: general }
+
+      # initialize kubernetes cluster and docker registry for it
     - { role: nephelaiio.docker-registry, tags: docker-registry }
     - { role: kubernetes-master, tags: kubernetes-master }
+
+      # set up Elastic Stack for centralized logging
     - { role: geerlingguy.elasticsearch, tags: elk-server }
     - { role: geerlingguy.filebeat, tags: elk-client }
     - { role: geerlingguy.logstash, tags: elk-server }
     - { role: geerlingguy.kibana, tags: elk-server }
+
+      # set up zabbix monitoring
     - { role: dj-wasabi.zabbix-server, tags: zabbix-server }
     - { role: dj-wasabi.zabbix-agent, tags: zabbix-agent }
+
+      # set up jenkins master
     - { role: geerlingguy.jenkins, tags: jenkins-master }
-    - { role: taskmngr-kubernetes, tags: taskmngr-kubernetes }
   environment:
     KUBECONFIG: /home/deploy/admin.conf
   vars:
     kube_master_ip: "192.168.59.2"
 
+
 - hosts: taskmngr-node
   roles:
     - { role: general, tags: general }
+
+      # agents/clients for various infrastructure services
     - { role: kubernetes-node, tags: kubernetes-node }
     - { role: geerlingguy.filebeat, tags: elk-client }
     - { role: dj-wasabi.zabbix-agent, tags: zabbix-agent }
