@@ -1,3 +1,17 @@
+- name: activate overlayfs
+  shell: |
+    echo "overlay" > /etc/modules-load.d/overlay.conf
+    modprobe overlay
+    mkdir -p /etc/systemd/system/docker.service.d
+
+- name: enable overlayfs for docker systemd service
+  blockinfile:
+    path: /etc/systemd/system/docker.service.d/override.conf
+    block: |
+      [Service]
+      ExecStart=
+      ExecStart=/usr/bin/docker daemon --storage-driver=overlay
+
 - name: install docker yum packages
   yum:
     name: "{{ item }}"
