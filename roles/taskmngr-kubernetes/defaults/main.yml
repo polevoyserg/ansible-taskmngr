@@ -5,32 +5,40 @@ app_build: false
 app_deploy_testing: false
 app_test: false
 app_deploy_prod: false
-force_create_cert: false
 # app_prod_version:
 # app_test_version:
 # app_version: '0.1.0'
+
+force_create_cert: false
+force_ingress: false
+force_testing_app: false
+force_prod_app: false
 
 app_git: "https://github.com/bititanb/taskmngr"
 app_repo_local_path: "/tmp/taskmngr-django"
 app_dockerfile_path: "{{ app_repo_local_path }}"
 app_django_path: "{{ app_repo_local_path }}"
 app_settings_path: "{{ app_django_path }}/taskmngr/settings.py"
+kube_app_configs_dir: "/etc/kubernetes/manifests/"
+
+app_container_name: "taskmngr-django"
+docker_repo_uri: "taskmngr1:5000"
+
 app_configs:
   common: ["common.yaml"]
   ingress: ["nginx-ingress-controller.yaml"]
   testing: ["taskmngr-testing.yaml"]
   production: ["taskmngr.yaml"]
+
 app_kube_configs:
   - nginx-ingress-controller.yaml
   - common.yaml
   - taskmngr-testing.yaml
   - taskmngr.yaml
-kube_app_configs_dir: "/etc/kubernetes/manifests/"
-force_ingress: false
-force_testing_app: false
-force_prod_app: false
+
 app_label: {"name": "app", "value": "taskmngr"}
 app_common_label: {"name": "app", "value": "taskmngr-common"}
+
 app_namespaces: {"production": "default", "testing": "testing"}
 all_namespaces: ["default", "testing", "kube-system"]
 ingress_namespace:
@@ -42,8 +50,7 @@ ingress_namespace:
     label_name: "k8s-app"
     label_value: "nginx-ingress-controller"
     namespace_name: "kube-system"
-app_container_name: "taskmngr-django"
-docker_repo_uri: "taskmngr1:5000"
+
 kube_tls_secret_name: "tls-secret"
 kube_tls_secret_namespaces: ["default", "testing"]
 kube_tls_hostname: "taskmngr1"

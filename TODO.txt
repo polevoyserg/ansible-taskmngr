@@ -1,8 +1,8 @@
   1. geerlingguy.kibana in "configure default kibana index" sometimes creates new index, but DO NOT assigns it as a default. Need to split that task in two and repeat the second until it succeeds.
   1.1 maybe find a way to redirect to "Discover" page automatically and set timerange to something like one month instead of 15 mins?
-V 2. k8s apiserver randomly fails after some time; logs here ./
+x 2. k8s apiserver randomly fails after some time; logs here ./
   2.1 Too many TCP failed connection attempts last time (30k vs ~60k successeded)
-  3. check if server restart doesn't broke anything
-  4. find a way to get taskmngr1 from host machine (needed to forward to Django app properly, it checks for hostname)
-  4.1 recreate containers without internal_network, is it enough?
-  5. make sure application works as expected
+x 3. check if server restart doesn't broke anything
+x 4. find a way to get taskmngr1 from host machine (needed to forward to Django app properly, it checks for hostname)
+x 4.1 recreate containers without internal_network, is it enough?
+x 5. make sure application works as expected
