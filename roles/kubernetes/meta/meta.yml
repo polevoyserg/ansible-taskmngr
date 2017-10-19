@@ -1,5 +1,0 @@
----
-
-dependencies:
-  - { role: general }
-  - { role: docker }

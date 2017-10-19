@@ -39,11 +39,11 @@
     - "{{ kubectl_package_name }}"
     - "{{ kubecni_package_name }}"
 
-# - name: BUGFIX change cgroup driver for kubelet (or it won't start along with kubeadm)
-#   lineinfile:
-#     dest: "/etc/systemd/system/kubelet.service.d/10-kubeadm.conf"
-#     regexp: '^Environment=\"KUBELET_CGROUP_ARGS='
-#     line: 'Environment="KUBELET_CGROUP_ARGS=--cgroup-driver=cgroupfs"'
+- name: change default kubelet cgroup driver to match docker's one
+  replace:
+    path: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+    regexp: '--cgroup-driver=systemd'
+    replace: '--cgroup-driver=cgroupfs'
 
 - name: update cgroup driver configuration for kubelet
   systemd:
