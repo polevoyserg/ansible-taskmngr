@@ -41,7 +41,7 @@
     tag: "{{ app_version.stdout }}.{{ git_commit_sha.stdout }}"
     repository: "{{ docker_repo_uri }}/{{ app_container_name }}"
     push: yes
-    force: yes    # HACK: sometimes doesn't build
+    force: yes    # HACK: sometimes not building
   when: app_build
 
 - name: copy app config files to remote host
@@ -83,7 +83,6 @@
   shell: "kubectl apply -f {{ item[0] }}{{ item[1] }}"
   with_nested: ["{{ kube_app_configs_dir }}", "{{ app_configs.common }}"]
   when: app_deploy_testing or app_deploy_prod or app_build
-  # when: app_deploy_testing or app_deploy_prod or app_build
 
 - name: delete secret tls
   shell: "kubectl delete secret {{ kube_tls_secret_name }} -n {{ item }}"
@@ -102,11 +101,6 @@
   shell: "kubectl apply -f {{ item[0] }}{{ item[1] }}"
   with_nested: ["{{ kube_app_configs_dir }}", "{{ app_configs.testing }}"]
   when: app_deploy_testing
-
-# - name: wait until database is ready
-#   wait_for:
-#     port: 5432
-#   when: app_test
 
 - pause:
     seconds: 15

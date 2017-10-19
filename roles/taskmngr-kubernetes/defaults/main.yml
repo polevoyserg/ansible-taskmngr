@@ -5,9 +5,6 @@ app_build: false
 app_deploy_testing: false
 app_test: false
 app_deploy_prod: false
-# app_prod_version:
-# app_test_version:
-# app_version: '0.1.0'
 
 force_create_cert: false
 force_ingress: false

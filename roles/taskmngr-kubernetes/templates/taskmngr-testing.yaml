@@ -104,39 +104,17 @@ data:
         proxy_redirect off;
 
         upstream django {
-            # ip_hash;
             server 127.0.0.1:8001;
         }
 
-        # server {
-        #     listen 8000;
-        #     server_name taskmngr1;
-        #     return 301 https://$host$request_uri;
-        # }
-
         server {
-            # listen 8000;
             listen 8000 default_server ssl;
             server_name taskmngr1;
 
-            # ssl on;
             ssl_certificate /certs/tls.crt;
             ssl_certificate_key /certs/tls.key;
-            # ssl_session_cache    shared:SSL:1m;
-            # ssl_session_timeout  10m;
-            # ssl_verify_client off;
-            # proxy_ssl_session_reuse off;
-            # ssl_protocols        TLSv1.2;
-            # ssl_ciphers RC4:HIGH:!aNULL:!MD5;
-            # proxy_ssl_protocols        TLSv1.2;
-            # proxy_ssl_ciphers RC4:HIGH:!aNULL:!MD5;
-            # ssl_prefer_server_ciphers on;
 
             include /etc/nginx/proxy_params;
-
-            # if ($scheme = http) {
-            #     return 301 https://$server_name$request_uri;
-            # }
 
             location / {
                 proxy_pass http://django/;
@@ -166,19 +144,14 @@ spec:
     ports:
         - name: postfix
           port: 25
-          # nodePort: 30025
         - name: nginx
           port: 8000
-          # nodePort: 30080
         - name: django
           port: 8001
-          # nodePort: 30081
         - name: postgres
           port: 5432
-          # nodePort: 30032
     selector:
         app: taskmngr
-    # type: NodePort
 
 ---
 
@@ -244,7 +217,12 @@ spec:
                   name: django
                   imagePullPolicy: Always
                   command: ["/bin/sh"]
-                  args: ["-c", "python manage.py collectstatic --no-input && python manage.py makemigrations && chown -R root:root /static && chmod -R 755 /static && python manage.py migrate && gunicorn taskmngr.wsgi -b 0.0.0.0:8001 --timeout 120"]
+                  args: ["-c", "python manage.py collectstatic --no-input &&",
+                      "python manage.py makemigrations &&",
+                      "chown -R root:root /static &&",
+                      "chmod -R 755 /static &&",
+                      "python manage.py migrate &&",
+                      "gunicorn taskmngr.wsgi -b 0.0.0.0:8001 --timeout 120"]
                   #args: ["-c", "while true; do sleep 5; done"]
                   ports:
                       - containerPort: 8001
