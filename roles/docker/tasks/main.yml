@@ -13,11 +13,32 @@
       ExecStart=
       ExecStart=/usr/bin/docker daemon --storage-driver=overlay
 
-- name: install docker yum packages
+- name: enable upstream docker repo
+  blockinfile:
+    path: /etc/yum.repos.d/docker.repo
+    create: yes
+    block: |
+      [dockerrepo]
+      name=Docker Repository
+      baseurl=https://yum.dockerproject.org/repo/main/centos/$releasever/
+      enabled=1
+      gpgcheck=1
+      gpgkey=https://yum.dockerproject.org/gpg
+  when: docker_from_upstream
+
+- name: install docker from upstream
   yum:
     name: "{{ item }}"
     state: latest
-  with_items: "{{ docker_yum_packages }}"
+  with_items: "{{ docker_upstream_packages }}"
+  when: docker_from_upstream
+
+- name: install docker from centos official repos
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items: "{{ docker_stable_packages }}"
+  when: not docker_from_upstream
 
 - name: install docker pip packages
   pip:

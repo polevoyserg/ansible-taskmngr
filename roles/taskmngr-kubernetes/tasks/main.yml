@@ -41,6 +41,7 @@
     tag: "{{ app_version.stdout }}.{{ git_commit_sha.stdout }}"
     repository: "{{ docker_repo_uri }}/{{ app_container_name }}"
     push: yes
+    force: yes    # HACK: sometimes doesn't build
   when: app_build
 
 - name: copy app config files to remote host
