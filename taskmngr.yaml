@@ -18,6 +18,9 @@
 
       # set up jenkins master
     - { role: geerlingguy.jenkins, tags: jenkins-master }
+
+      # build/test/deploy django app with kubernetes
+    - { role: taskmngr-kubernetes, tags: taskmngr-kubernetes }
   environment:
     KUBECONFIG: /home/deploy/admin.conf
   vars:
