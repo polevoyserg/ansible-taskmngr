@@ -224,6 +224,9 @@ spec:
                   volumeMounts:
                       - name: static-files
                         mountPath: /static
+                  env:
+                      - name: DJANGO_SETTINGS_MODULE
+                        value: taskmngr.settings.kubernetes
                   # resources:
                   #     limits:
                   #         cpu: 200m
