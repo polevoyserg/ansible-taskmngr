@@ -21,8 +21,11 @@
 
       # build/test/deploy django app with kubernetes
     - { role: taskmngr-kubernetes, tags: taskmngr-kubernetes }
+
   environment:
+    DJANGO_SETTINGS_MODULE: taskmngr.settings.kubernetes
     KUBECONFIG: /home/deploy/admin.conf
+
   vars:
     kube_master_ip: "192.168.59.2"
 
@@ -35,5 +38,7 @@
     - { role: kubernetes-node, tags: kubernetes-node }
     - { role: geerlingguy.filebeat, tags: elk-client }
     - { role: dj-wasabi.zabbix-agent, tags: zabbix-agent }
+
   environment:
+    DJANGO_SETTINGS_MODULE: taskmngr.settings.kubernetes
     KUBECONFIG: /home/deploy/admin.conf

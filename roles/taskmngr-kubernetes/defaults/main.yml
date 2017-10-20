@@ -15,7 +15,7 @@ app_git: "https://github.com/bititanb/taskmngr"
 app_repo_local_path: "/tmp/taskmngr-django"
 app_dockerfile_path: "{{ app_repo_local_path }}"
 app_django_path: "{{ app_repo_local_path }}"
-app_settings_path: "{{ app_django_path }}/taskmngr/settings.py"
+app_settings_path: "{{ app_django_path }}/taskmngr/settings/base.py"
 kube_app_configs_dir: "/etc/kubernetes/manifests/"
 
 app_container_name: "taskmngr-django"
