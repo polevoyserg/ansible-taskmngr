@@ -13,6 +13,14 @@
       ExecStart=
       ExecStart=/usr/bin/docker daemon --storage-driver=overlay
 
+- name: increase vm.max_map_count
+  sysctl:
+    name: vm.max_map_count
+    value: 262144
+    state: present
+    reload: yes
+    sysctl_set: yes
+
 - name: enable upstream docker repo
   blockinfile:
     path: /etc/yum.repos.d/docker.repo
