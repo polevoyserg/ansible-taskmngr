@@ -123,7 +123,7 @@
 - name: run tests in testing
   shell: "kubectl exec -n {{ app_namespaces.testing }} {{ testing_pod.stdout }} -c django -- sh -c 'cd /django && python manage.py test'"
   register: tests
-  until: "('container not found') not in tests.stderr and ('database system is shutting down') not in tests.stderr"
+  until: "('container not found') not in tests.stderr and ('database system is shutting down') not in tests.stderr and ('is not running') not in tests.stderr"
   retries: 10
   delay: 10
   when: app_test
