@@ -9,6 +9,12 @@ metadata:
     ingress.kubernetes.io/ssl-passthrough: "true"
     # ingress.kubernetes.io/force-ssl-redirect: "false"
     ingress.kubernetes.io/ssl-redirect: "true"
+    ingress.kubernetes.io/upstream-fail-timeout: "30"
+    ingress.kubernetes.io/proxy-connect-timeout: "30"
+    ingress.kubernetes.io/proxy-send-timeout: "30"
+    ingress.kubernetes.io/proxy-read-timeout: "30"
+    ingress.kubernetes.io/proxy-next-upstream: "30"
+    ingress.kubernetes.io/proxy-request-buffering: "30"
 spec:
   tls:
     - secretName: tls-secret
