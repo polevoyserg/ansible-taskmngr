@@ -2,7 +2,7 @@
 
 ## Краткий обзор
 Ansible используется как для разворачивания инфраструктуры, так и для деплоя приложения.  
-Часть ролей написана с нуля, т. к. ничего приличного не нашлось (как для Kubernetes).  
+Часть ролей написана с нуля, т. к. ничего приличного не нашлось (как например для Kubernetes).  
 Часть взята с Ansible Galaxy и допилена на месте (эти имеют префикс в виде имени автора, вроде *geerlingguy*.filebeat).
 
 На всё достаточно двух (виртуальных) машин.  
@@ -45,18 +45,27 @@ Ansible используется как для разворачивания ин
 
 ## Развертывание
 
+### Развертывание инфраструктуры
 ```shell
-MASTER_IP="XXX.XXX.XXX.XXX"   # IP основного хоста с 3.8ГБ ОЗУ, по умолчанию - 192.168.59.2
+MASTER_IP="XXX.XXX.XXX.XXX"   # IP основного хоста с 3.8ГБ ОЗУ, по умолчанию - 192.168.59.2 (Vagrant)
 
-ansible-playbook -e kube_master_ip="${MASTER_IP}" /etc/ansible/taskmngr.yaml   # начать развертывание
+ansible-playbook -e kube_master_ip="${MASTER_IP}" /etc/ansible/taskmngr.yaml
 ```
+### Развертывание приложения
+
+Во время развертывания инфраструктуры разворачивается и Jenkins, который вытягивает репозиторий с приложением и собирает приложение, используя роль **taskmngr-kubernetes** [(более подробно здесь)](./roles/taskmngr-kubernetes/README.md)
 
 ## Отладка
-```shell
-ansible-playbook -vvvv -e kube_master_ip="${MASTER_IP}" /etc/ansible/taskmngr.yaml
-ansible-playbook -vvvv -e kube_master_ip="${MASTER_IP}" -t ${SPECIFIC_TAG} /etc/ansible/taskmngr.yaml
-ansible-playbook -vvvv -e kube_master_ip="${MASTER_IP}" --start-at-task="add something somewhere" /etc/ansible/taskmngr.yaml
 
+```shell
+ansible-playbook -e kube_master_ip="${MASTER_IP}" \
+  -vvvv                # очень подробные логи \
+  -t ${SPECIFIC_TAG}   # выполнять только с тегом X; теги в taskmngr.yaml \
+  --start-at-task="add something somewhere"   # начать с конкретного таска \
+  /etc/ansible/taskmngr.yaml
+```
+
+```shell
 # kubernetes
 kubectl get all --all-namespaces
 kubectl describe ...
@@ -65,4 +74,14 @@ journalctl -u kubelet
 docker ps --all
 docker logs ...
 docker inspect ...
+```
+
+### Дополнительные флаги
+Для многих ролей доступны дополнительные флаги для форсированного переразвертывания. Имеют общий префикс "*force_*". Найти можно так:
+```shell
+grep -R "force_" ./roles
+```
+Использовать так:
+```shell
+ansible-playbook -e force_something=true /etc/ansible/taskmngr.yaml
 ```
