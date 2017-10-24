@@ -1,22 +1,21 @@
 # Ansible playbooks для [CI-CD-pipeline](https://github.com/bititanb/CI-CD-pipeline)
 
 ## Краткий обзор
-Ansible используется для развертывания инфраструктуры и приложения.  
-Часть ролей написана с нуля, часть взята с Ansible Galaxy и адаптирована (эти имеют имя автора префиксом, напр. *geerlingguy*.filebeat).
+Ansible используется для развертывания инфраструктуры и деплоя самого приложения.  
+Часть ролей написана с нуля, часть взята с Ansible Galaxy и адаптирована (имеют имя автора префиксом, напр. *geerlingguy*.filebeat).
 
-Нужно две (виртуальные) машины, на одной будут:
+В итоге получатся две (виртуальные) машины, на первой:
+* Kubernetes master + Docker Registry
 * Jenkins
-* Kubernetes
-* Docker Registry
-* Elasticsearch
-* Logstash
-* Kibana
 * Zabbix
+* Elasticsearch + Logstash + Kibana
 
-На второй только клиенты для некоторых сервисов:
-* Kubernetes
+На обеих:
+* Kubernetes node
+* Zabbix agent
 * Filebeat
-* Zabbix
+* Приложение (production)
+* Приложение (testing)
 
 ## Подготовка
 > Подготовку можно пропустить, если разворачивать, используя [Vagrant/Virtualbox](https://github.com/bititanb/CI-CD-pipeline/tree/master/vagrant) (рекомендуется) или [Packer/KVM](https://github.com/bititanb/CI-CD-pipeline/tree/master/packer).
