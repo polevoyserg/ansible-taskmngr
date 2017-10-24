@@ -5,10 +5,10 @@ Ansible используется для развертывания инфрас�
 Часть ролей написана с нуля, часть взята с Ansible Galaxy и адаптирована (имеют имя автора префиксом, напр. *geerlingguy*.filebeat).
 
 В итоге получатся две (виртуальные) машины, на первой:
-* Jenkins
 * Kubernetes master + Docker Registry
-* Elasticsearch + Logstash + Kibana
+* Jenkins
 * Zabbix
+* Elasticsearch + Logstash + Kibana
 
 На обеих:
 * Kubernetes node
