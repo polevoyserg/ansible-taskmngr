@@ -10,13 +10,17 @@ metadata:
     ingress.kubernetes.io/ssl-passthrough: "false"
     # ingress.kubernetes.io/force-ssl-redirect: "false"
     ingress.kubernetes.io/ssl-redirect: "false"
-    ingress.kubernetes.io/secure-backends: "false"
     #ingress.kubernetes.io/upstream-fail-timeout: "30"
     #ingress.kubernetes.io/proxy-connect-timeout: "30"
     #ingress.kubernetes.io/proxy-send-timeout: "30"
     #ingress.kubernetes.io/proxy-read-timeout: "30"
     #ingress.kubernetes.io/proxy-next-upstream: "30"
     #ingress.kubernetes.io/proxy-request-buffering: "30"
+    #ingress.kubernetes.io/client-body-buffer-size: 1k
+    #ingress.kubernetes.io/proxy-body-size: 8m
+    #ingress.kubernetes.io/upstream-max-fails: "5"
+    #ingress.kubernetes.io/secure-backends: "false"
+    #ingress.kubernetes.io/service-upstream: "true"
 spec:
   rules:
     - http:
