@@ -6,4 +6,5 @@ x 3. check if server restart doesn't broke anything
 x 4. find a way to get taskmngr1 from host machine (needed to forward to Django app properly, it checks for hostname)
 x 4.1 recreate containers without internal_network, is it enough?
 x 5. make sure application works as expected
-  change weave network on something else (calico?)
+- change weave network on something else (calico?)
+  test flannel network again after we changed max RAM available for the second host
