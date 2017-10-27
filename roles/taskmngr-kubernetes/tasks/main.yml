@@ -116,7 +116,7 @@
   shell: "kubectl get pod -n {{ app_namespaces.testing }} {{ testing_pod.stdout }} | grep Running"
   register: testing_up
   until: testing_up.stdout != ''
-  retries: 50
+  retries: 100
   delay: 10
   when: app_test
 
