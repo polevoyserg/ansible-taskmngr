@@ -42,6 +42,8 @@
     repository: "{{ docker_repo_uri }}/{{ app_container_name }}"
     push: yes
     force: yes    # HACK: sometimes not building
+  retries: 3
+  delay: 15
   when: app_build
 
 - name: copy app config files to remote host
@@ -124,8 +126,8 @@
   shell: "kubectl exec -n {{ app_namespaces.testing }} {{ testing_pod.stdout }} -c django -- sh -c 'cd /django && python manage.py test'"
   register: tests
   until: "('container not found') not in tests.stderr and ('database system is shutting down') not in tests.stderr and ('is not running') not in tests.stderr"
-  retries: 10
-  delay: 10
+  retries: 3
+  delay: 15
   when: app_test
 
 - name: apply app configs in production
