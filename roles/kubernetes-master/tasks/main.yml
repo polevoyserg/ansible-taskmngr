@@ -26,22 +26,22 @@
     line: "export KUBECONFIG={{ item.home }}/admin.conf"
   with_items: "{{ kube_users }}"
 
-- name: deploy flannel network in pod with kubectl
+  # - name: deploy flannel network in pod with kubectl
+  #   shell: |
+  #     kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
+  #     kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-legacy.yml
+  #   register: flannel_out
+  #   until: "'configured' in flannel_out.stdout"
+  #   retries: 25
+  #   delay: 10
+
+- name: deploy weave network with kubectl
   shell: |
-    kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
-    kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-legacy.yml
-  register: flannel_out
-  until: "'configured' in flannel_out.stdout"
+    kubectl apply -f https://git.io/weave-kube-1.6
+  register: result
+  until: "'configured' in result.stdout"
   retries: 25
   delay: 10
-
-  #- name: deploy weave network with kubectl
-  #  shell: |
-  #    kubectl apply -f https://git.io/weave-kube-1.6
-  #  register: result
-  #  until: "'configured' in result.stdout"
-  #  retries: 25
-  #  delay: 10
 
 - name: configure taints on nodes
   shell: |
