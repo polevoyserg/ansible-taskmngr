@@ -1,28 +1,38 @@
 - hosts: taskmngr-master
   roles:
+      # sample(general)
     - { role: general, tags: general }
+      # end-sample
 
-      # sample(test1)
       # initialize kubernetes cluster and docker registry for it
+      # sample(kubernetes)
     - { role: nephelaiio.docker-registry, tags: docker-registry }
     - { role: kubernetes-master, tags: kubernetes-master }
       # end-sample
 
       # set up Elastic Stack for centralized logging
+      # sample(elastic)
     - { role: geerlingguy.elasticsearch, tags: elk-server }
     - { role: geerlingguy.filebeat, tags: elk-client }
     - { role: geerlingguy.logstash, tags: elk-server }
     - { role: geerlingguy.kibana, tags: elk-server }
+      # end-sample
 
       # set up zabbix monitoring
+      # sample(zabbix)
     - { role: dj-wasabi.zabbix-server, tags: zabbix-server }
     - { role: dj-wasabi.zabbix-agent, tags: zabbix-agent }
+      # end-sample
 
       # set up jenkins master
+      # sample(jenkins)
     - { role: geerlingguy.jenkins, tags: jenkins-master }
+      # end-sample
 
       # build/test/deploy django app with kubernetes
+      # sample(taskmngr-kubernetes)
     - { role: taskmngr-kubernetes, tags: taskmngr-kubernetes }
+      # end-sample
 
   environment:
     DJANGO_SETTINGS_MODULE: taskmngr.settings.kubernetes
@@ -37,7 +47,9 @@
     - { role: general, tags: general }
 
       # agents/clients for various infrastructure services
+      # sample(kubernetes-node)
     - { role: kubernetes-node, tags: kubernetes-node }
+      # end-sample
     - { role: geerlingguy.filebeat, tags: elk-client }
     - { role: dj-wasabi.zabbix-agent, tags: zabbix-agent }
 
