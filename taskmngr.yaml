@@ -2,9 +2,11 @@
   roles:
     - { role: general, tags: general }
 
+      # sample(test1)
       # initialize kubernetes cluster and docker registry for it
     - { role: nephelaiio.docker-registry, tags: docker-registry }
     - { role: kubernetes-master, tags: kubernetes-master }
+      # end-sample
 
       # set up Elastic Stack for centralized logging
     - { role: geerlingguy.elasticsearch, tags: elk-server }
