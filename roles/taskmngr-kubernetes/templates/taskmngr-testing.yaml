@@ -218,7 +218,7 @@ spec:
                   name: django
                   imagePullPolicy: Always
                   command: ["/bin/sh"]
-                  args: ["-c", "python manage.py collectstatic --no-input && python manage.py makemigrations && chown -R root:root /static && chmod -R 755 /static && python manage.py migrate && gunicorn taskmngr.wsgi -b 0.0.0.0:8001 --timeout 120"]
+                  args: ["-c", "python manage.py collectstatic --no-input && python manage.py makemigrations --no-input && chown -R root:root /static && chmod -R 755 /static && python manage.py migrate --no-input && gunicorn taskmngr.wsgi -b 0.0.0.0:8001 --timeout 120"]
                   #args: ["-c", "while true; do sleep 5; done"]
                   ports:
                       - containerPort: 8001
