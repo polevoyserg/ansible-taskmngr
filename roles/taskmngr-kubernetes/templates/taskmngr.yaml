@@ -1,3 +1,4 @@
+# sample(ingress-prod)
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
@@ -21,10 +22,6 @@ metadata:
     #ingress.kubernetes.io/secure-backends: "false"
     #ingress.kubernetes.io/service-upstream: "true"
 spec:
-  #  tls:
-  #    - secretName: tls-secret
-  #      hosts:
-  #        - "taskmngr1"
   rules:
     - http:
         paths:
@@ -33,6 +30,7 @@ spec:
               serviceName: taskmngr
               servicePort: 8000
       host: "taskmngr1"
+# end-sample
 
 ---
 
@@ -113,6 +111,7 @@ data:
     django1.conf: |
         proxy_redirect off;
 
+        # sample(nginx-prod)
         upstream django {
             server 127.0.0.1:8001;
         }
@@ -129,6 +128,7 @@ data:
             location / {
                 proxy_pass http://django/;
             }
+        # end-sample
 
             location /static {
                 autoindex on;
@@ -152,6 +152,7 @@ metadata:
     namespace: default
 spec:
     ports:
+      # sample(services-prod)
         - name: postfix
           port: 25
         - name: nginx
@@ -160,6 +161,7 @@ spec:
           port: 8001
         - name: postgres
           port: 5432
+      # end-sample
     selector:
         app: taskmngr
 
@@ -228,7 +230,7 @@ spec:
                   imagePullPolicy: Always
                   command: ["/bin/sh"]
                   args: ["-c", "python manage.py collectstatic --no-input && python manage.py makemigrations --no-input && chown -R root:root /static && chmod -R 755 /static && python manage.py migrate --no-input && gunicorn taskmngr.wsgi -b 0.0.0.0:8001 --timeout 120"]
-                  #args: ["-c", "while true; do sleep 5; done"]
+                  # args: ["-c", "while true; do sleep 5; done"]
                   ports:
                       - containerPort: 8001
                   volumeMounts:

@@ -8,6 +8,7 @@
   include_vars: "{{ ansible_persistent_facts_file }}"
   connection: localhost
 
+  # sample(kubeadm-join)
 - name: join the cluster with kubeadm
   command: "kubeadm join --token {{ token }} {{ apiserver }}"
   register: join
@@ -15,9 +16,10 @@
   failed_when: join.rc > 0 and join.rc != 2
   retries: 3
   delay: 10
+  # end-sample
 
 - name: wait until kubelet.conf created
-  wait_for: 
+  wait_for:
     path: "/etc/kubernetes/kubelet.conf"
     state: present
 

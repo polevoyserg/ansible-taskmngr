@@ -23,6 +23,7 @@ metadata:
     #ingress.kubernetes.io/service-upstream: "true"
 spec:
   rules:
+    # sample(ingress-testing)
     - http:
         paths:
           - path: /
@@ -30,6 +31,7 @@ spec:
               serviceName: taskmngr
               servicePort: 8000
       host: "testing.taskmngr1"
+    # end-sample
 
 ---
 
@@ -110,6 +112,7 @@ data:
     django1.conf: |
         proxy_redirect off;
 
+        # sample(nginx-testing)
         upstream django {
             server 127.0.0.1:8001;
         }
@@ -123,6 +126,7 @@ data:
             location / {
                 proxy_pass http://django/;
             }
+        # end-sample
 
             location /static {
                 autoindex on;

@@ -6,6 +6,7 @@
     state: present
   when: app_checkout or app_build or app_deploy_testing or app_deploy_prod
 
+  # sample(checkout)
 - name: get app from git
   git:
     repo: '{{ app_git }}'
@@ -13,7 +14,9 @@
     force: true
     version: master
   when: app_checkout
+  # end-sample
 
+  # sample(version)
 - name: get app version
   shell: "grep -E '^APP_VERSION' {{ app_settings_path }} | cut -d\\' -f2"
   register: app_version
@@ -26,6 +29,7 @@
     git rev-parse HEAD | cut -c -6
   register: git_commit_sha
   when: app_build or app_deploy_testing or app_deploy_prod
+  # end-sample
 
 - name: save git revision in django settings
   lineinfile:
@@ -34,6 +38,7 @@
     line: "APP_REVISION_SHORT = '{{ git_commit_sha.stdout }}'"
   when: app_build
 
+  # sample(build)
 - name: build and push app container
   docker_image:
     path: "{{ app_dockerfile_path }}"
@@ -45,6 +50,7 @@
   retries: 3
   delay: 15
   when: app_build
+  # end-sample
 
 - name: copy app config files to remote host
   template:
@@ -92,17 +98,21 @@
   failed_when: false
   when: (app_deploy_testing or app_deploy_prod or app_build) and force_create_cert
 
+  # sample(tls)
 - name: create secret tls
   shell: "kubectl create secret tls {{ kube_tls_secret_name }} --key {{ kube_tls_key_path }} --cert {{ kube_tls_cert_path }} -n {{ item }}"
   with_items: "{{ kube_tls_secret_namespaces }}"
   register: create_secret
   when: app_deploy_testing or app_deploy_prod or app_build
   failed_when: "('already exists' not in create_secret.stderr) and create_secret.rc > 0"
+  # end-sample
 
+  # sample(testing)
 - name: apply app configs in testing
   shell: "kubectl apply -f {{ item[0] }}{{ item[1] }}"
   with_nested: ["{{ kube_app_configs_dir }}", "{{ app_configs.testing }}"]
   when: app_deploy_testing
+  # end-sample
 
 - pause:
     seconds: 15
@@ -122,6 +132,7 @@
   delay: 10
   when: app_test
 
+  # sample(tests)
 - name: run tests in testing
   shell: "kubectl exec -n {{ app_namespaces.testing }} {{ testing_pod.stdout }} -c django -- sh -c 'cd /django && python manage.py test --no-input'"
   register: tests
@@ -129,8 +140,11 @@
   retries: 3
   delay: 15
   when: app_test
+  # end-sample
 
+  # sample(prod)
 - name: apply app configs in production
   shell: "kubectl apply -f {{ item[0] }}{{ item[1] }}"
   with_nested: ["{{ kube_app_configs_dir }}", "{{ app_configs.production }}"]
   when: app_deploy_prod
+  # end-sample

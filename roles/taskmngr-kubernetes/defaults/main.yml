@@ -1,15 +1,19 @@
 ---
 
+# sample(flags)
 app_checkout: false
 app_build: false
 app_deploy_testing: false
 app_test: false
 app_deploy_prod: false
+# end-sample
 
+# sample(force-flags)
 force_create_cert: false
 force_ingress: false
 force_testing_app: false
 force_prod_app: false
+# end-sample
 
 app_git: "https://github.com/bititanb/taskmngr"
 app_repo_local_path: "/tmp/taskmngr-django"
