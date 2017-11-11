@@ -1,5 +1,5 @@
-# sample(ingress-prod)
 apiVersion: extensions/v1beta1
+# sample(ingress-prod)
 kind: Ingress
 metadata:
   name: taskmngr-nginx-ingress
@@ -8,7 +8,7 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: "nginx"
     ingress.kubernetes.io/ssl-passthrough: "true"
-    # ingress.kubernetes.io/force-ssl-redirect: "false"
+    # ingress.kubernetes.io/force-ssl-redirect: "false" # skip-sample
     ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   rules:
