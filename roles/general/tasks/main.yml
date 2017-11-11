@@ -1,5 +1,6 @@
 ---
 
+  # sample(key-auth)
 - name: is pubkey authentication possible
   local_action: command ssh -o User={{ ansible_ssh_user }} -o ConnectTimeout=11 -o PreferredAuthentications=publickey -o PubkeyAuthentication=yes {{ inventory_hostname }} echo 'Worked'
   register: result
@@ -20,6 +21,7 @@
     user: "{{ ansible_ssh_user }}"
     key: "{{ lookup('file', '/home/' + ansible_local_user|quote + '/.ssh/id_rsa.pub') }}"
   become: false
+  # end-sample
 
 - name: permit sudo without password for deploy user
   lineinfile:
