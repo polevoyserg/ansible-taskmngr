@@ -7,4 +7,4 @@ x 4. find a way to get taskmngr1 from host machine (needed to forward to Django 
 x 4.1 recreate containers without internal_network, is it enough?
 x 5. make sure application works as expected
 - change weave network on something else (calico?)
-  test flannel network again after we changed max RAM available for the second host
+- test flannel network again after we changed max RAM available for the second host
