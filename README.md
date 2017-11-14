@@ -1,3 +1,7 @@
+Связанные репозитории:
+* https://github.com/bititanb/CI-CD-pipeline
+* https://github.com/bititanb/taskmngr
+
 # Ansible playbooks для [CI-CD-pipeline](https://github.com/bititanb/CI-CD-pipeline)
 
 ## Краткий обзор
@@ -27,7 +31,7 @@ Ansible используется для развертывания инфрас�
 
 ### Хосты
 * Два Centos **7.2**
-* Первый должен иметь минимум 3.8ГБ ОЗУ, второй — 800МБ+
+* Первый должен иметь минимум 3.8 ГБ ОЗУ, второй — 1.1 ГБ
 * Должны быть доступны по DN taskmngr1 и taskmngr2 соответственно
 * SELinux отключен
 
@@ -56,8 +60,8 @@ ansible-playbook -e kube_master_ip="${MASTER_IP}" /etc/ansible/taskmngr.yaml
 ```shell
 ansible-playbook -e kube_master_ip="${MASTER_IP}" \
   -vvvv                # очень подробные логи \
-  -t ${SPECIFIC_TAG}   # выполнять только с тегом X; теги в taskmngr.yaml \
-  --start-at-task="add something somewhere"   # начать с конкретного таска \
+  -t ${SPECIFIC_TAG}   # выполнять только с тегом ${SPECIFIC_TAG}; теги в taskmngr.yaml \
+  --start-at-task="some task"   # начать с конкретного таска \
   /etc/ansible/taskmngr.yaml
 ```
 
